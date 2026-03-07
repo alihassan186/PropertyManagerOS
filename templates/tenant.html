@@ -4,641 +4,306 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PropertyOS — Report a Maintenance Issue</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --bg:       #07090F;
-      --surface:  #0F1117;
-      --surface2: #161922;
-      --border:   #1E2130;
-      --border2:  #2A2F45;
-      --accent:   #00D9A3;
-      --accent-glow: rgba(0,217,163,0.15);
-      --text:     #EEEEf6;
-      --muted:    #6B7280;
-      --red:      #EF4444;
-      --amber:    #F59E0B;
-      --green:    #10B981;
-      --blue:     #4F8FFF;
-      --pink:     #FF6B9D;
-      --head:     "Syne", sans-serif;
-      --sans:     "DM Sans", sans-serif;
-      --mono:     "DM Mono", monospace;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    /* ── Background decoration ── */
-    body::before {
-      content: '';
-      position: fixed;
-      top: -200px; left: 50%;
-      transform: translateX(-50%);
-      width: 800px; height: 800px;
-      background: radial-gradient(ellipse, rgba(0,217,163,0.06) 0%, transparent 70%);
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    ::-webkit-scrollbar { width: 5px; }
-    ::-webkit-scrollbar-track { background: var(--bg); }
-    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
-
-    /* ── Top nav ── */
-    header {
-      width: 100%;
-      padding: 18px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: rgba(7,9,15,0.8);
-      backdrop-filter: blur(12px);
-      position: sticky; top: 0;
-      z-index: 100;
-    }
-    .logo-mark {
-      display: flex; align-items: center; gap: 10px;
-      font-family: var(--head);
-      font-size: 17px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: -0.3px;
-    }
-    .logo-mark .dot {
-      width: 28px; height: 28px;
-      background: var(--accent);
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 14px;
-    }
-    .manager-link {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--muted);
-      text-decoration: none;
-      padding: 6px 14px;
-      border: 1px solid var(--border2);
-      border-radius: 20px;
-      transition: all 0.15s;
-    }
-    .manager-link:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── Main container ── */
-    main {
-      width: 100%;
-      max-width: 560px;
-      padding: 56px 24px 80px;
-      position: relative; z-index: 1;
-    }
-
-    /* ── Hero ── */
-    .hero {
-      text-align: center;
-      margin-bottom: 44px;
-    }
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--accent-glow);
-      border: 1px solid rgba(0,217,163,0.25);
-      border-radius: 20px;
-      padding: 5px 12px;
-      font-family: var(--mono);
-      font-size: 11px;
-      color: var(--accent);
-      margin-bottom: 18px;
-    }
-    .hero-badge .live-dot {
-      width: 6px; height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: pulse-dot 2s infinite;
-    }
-    @keyframes pulse-dot {
-      0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,217,163,0.4)}
-      50%{opacity:.8;box-shadow:0 0 0 4px rgba(0,217,163,0)}
-    }
-    .hero h1 {
-      font-family: var(--head);
-      font-size: 36px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      line-height: 1.1;
-      margin-bottom: 12px;
-      background: linear-gradient(135deg, #fff 40%, var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-    .hero p {
-      color: var(--muted);
-      font-size: 15px;
-      line-height: 1.6;
-      font-weight: 300;
-    }
-
-    /* ── Card ── */
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px;
-      transition: border-color 0.2s;
-    }
-    .card:focus-within { border-color: var(--border2); }
-
-    /* ── Form ── */
-    .form-group { margin-bottom: 18px; }
-    label {
-      display: block;
-      font-size: 12px;
-      font-family: var(--mono);
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 7px;
-    }
-    input[type="text"], textarea {
-      width: 100%;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      color: var(--text);
-      padding: 12px 14px;
-      font-family: var(--sans);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      -webkit-appearance: none;
-    }
-    input[type="text"]:focus, textarea:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(0,217,163,0.1);
-    }
-    input[type="text"]::placeholder, textarea::placeholder { color: var(--muted); }
-    textarea { resize: none; min-height: 110px; line-height: 1.6; }
-
-    .input-row { display: flex; gap: 10px; }
-    .input-row .form-group { flex: 1; margin-bottom: 0; }
-
-    /* ── Voice button ── */
-    .voice-row {
-      display: flex; align-items: center; gap: 10px;
-      margin-top: 8px;
-    }
-    .voice-btn {
-      display: flex; align-items: center; gap: 7px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 8px;
-      color: var(--muted);
-      padding: 8px 14px;
-      font-family: var(--sans);
-      font-size: 12px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .voice-btn:hover { border-color: var(--pink); color: var(--pink); }
-    .voice-btn.listening {
-      background: rgba(255,107,157,0.1);
-      border-color: var(--pink);
-      color: var(--pink);
-      animation: mic-pulse 1.2s infinite;
-    }
-    @keyframes mic-pulse {
-      0%,100%{box-shadow:0 0 0 0 rgba(255,107,157,0.3)}
-      50%{box-shadow:0 0 0 6px rgba(255,107,157,0)}
-    }
-    .voice-status { font-size: 12px; color: var(--pink); font-family: var(--mono); }
-
-    /* ── Submit button ── */
-    .submit-btn {
-      width: 100%;
-      padding: 14px;
-      background: var(--accent);
-      color: #07090F;
-      border: none;
-      border-radius: 10px;
-      font-family: var(--head);
-      font-size: 15px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      margin-top: 6px;
-      letter-spacing: -0.2px;
-    }
-    .submit-btn:hover { background: #00c49a; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,217,163,0.25); }
-    .submit-btn:active { transform: translateY(0); }
-    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
-
-    /* ── Spinner ── */
-    .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(7,9,15,0.3);
-      border-top-color: #07090F;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      display: inline-block;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* ── Processing panel ── */
-    #processing-panel {
-      display: none;
-      text-align: center;
-      padding: 12px 0 4px;
-    }
-    .processing-steps { margin: 16px 0; }
-    .step {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0;
-      font-size: 13px;
-      color: var(--muted);
-      transition: color 0.3s;
-    }
-    .step.active { color: var(--text); }
-    .step.done { color: var(--accent); }
-    .step-icon { font-size: 16px; width: 24px; text-align: center; }
-    .step-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--border2);
-      margin-left: auto;
-      flex-shrink: 0;
-    }
-    .step.active .step-dot { background: var(--accent); animation: pulse-dot 1s infinite; }
-    .step.done .step-dot { background: var(--accent); animation: none; }
-
-    /* ── Confirmation card ── */
-    #confirm-panel { display: none; }
-    .confirm-header {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 20px;
-    }
-    .confirm-icon {
-      width: 44px; height: 44px;
-      border-radius: 12px;
-      background: rgba(16,185,129,0.15);
-      border: 1px solid rgba(16,185,129,0.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-    .confirm-title { font-family: var(--head); font-size: 18px; font-weight: 700; }
-    .confirm-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .ref-id { font-family: var(--mono); font-size: 11px; color: var(--accent); }
-
-    .confirm-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 16px;
-    }
-    .confirm-chip {
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 12px 14px;
-    }
-    .cc-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-    .cc-value { font-size: 13px; font-weight: 500; }
-
-    .urgency-Emergency { color: var(--red); }
-    .urgency-High      { color: var(--amber); }
-    .urgency-Medium    { color: var(--blue); }
-    .urgency-Low       { color: var(--green); }
-
-    .advice-box {
-      background: var(--accent-glow);
-      border: 1px solid rgba(0,217,163,0.2);
-      border-radius: 10px;
-      padding: 14px;
-      margin-bottom: 16px;
-    }
-    .advice-label { font-family: var(--mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
-    .advice-text { font-size: 13px; color: var(--text); line-height: 1.5; }
-
-    .divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
-
-    .new-report-btn {
-      width: 100%;
-      padding: 12px;
-      background: var(--surface2);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      color: var(--text);
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .new-report-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-    /* ── Footer ── */
-    footer {
-      width: 100%;
-      text-align: center;
-      padding: 24px;
-      color: var(--muted);
-      font-size: 11px;
-      font-family: var(--mono);
-      border-top: 1px solid var(--border);
-      position: relative; z-index: 1;
-    }
-
-    /* ── Toast ── */
-    #toast-container {
-      position: fixed;
-      bottom: 24px; right: 24px;
-      display: flex; flex-direction: column; gap: 8px;
-      z-index: 9999;
-    }
-    .toast {
-      background: var(--surface);
-      border: 1px solid var(--border2);
-      border-radius: 10px;
-      padding: 12px 16px;
-      display: flex; align-items: center; gap: 10px;
-      font-size: 13px;
-      min-width: 260px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      animation: toastIn 0.2s ease;
-    }
-    @keyframes toastIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
-    .toast.error { border-color: rgba(239,68,68,0.4); }
-
-    /* ── Responsive ── */
-    @media (max-width: 480px) {
-      .hero h1 { font-size: 28px; }
-      main { padding: 36px 16px 60px; }
-      .card { padding: 20px; }
-      .confirm-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+  
+  <!-- Use url_for as previously taught in the pipeline setup -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
 </head>
-<body>
+<body class="bg-page text-text-main font-sans min-h-screen flex flex-col items-center relative">
 
-<header>
-  <div class="logo-mark">
-    <div class="dot">🏠</div>
-    PropertyOS
-  </div>
-  <a href="/manager" class="manager-link">Manager Dashboard →</a>
-</header>
+  <!-- Background Decoration -->
+  <div class="fixed top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[radial-gradient(ellipse,rgba(0,217,163,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
-<main>
-  <!-- Hero -->
-  <div class="hero">
-    <div class="hero-badge">
-      <div class="live-dot"></div>
-      AI-powered · Instant triage
+  <!-- Top nav -->
+  <header class="w-full px-8 py-4 flex items-center justify-between border-b border-border-base bg-page/80 backdrop-blur-md sticky top-0 z-[100]">
+    <div class="flex items-center gap-2.5 font-head text-[17px] font-extrabold tracking-[-0.3px]">
+      <div class="w-7 h-7 bg-accent rounded-lg flex items-center justify-center text-sm">🏠</div>
+      PropertyOS
     </div>
-    <h1>Report a Maintenance Issue</h1>
-    <p>Describe your problem and our AI will prioritise it instantly.<br/>We'll get the right person to you as fast as possible.</p>
-  </div>
+    <a href="/manager" class="font-mono text-[11px] text-text-muted px-3.5 py-1.5 border border-border-focus rounded-full transition-colors duration-150 hover:border-accent hover:text-accent">
+      Manager Dashboard →
+    </a>
+  </header>
 
-  <!-- Form Card -->
-  <div class="card" id="form-card">
-    <div id="form-view">
-      <div class="input-row" style="margin-bottom:18px;">
-        <div class="form-group">
-          <label>Your Unit / Apt. No.</label>
-          <input type="text" id="apt-input" placeholder="e.g. Apt 4B" autocomplete="off" />
-        </div>
-        <div class="form-group">
-          <label>Your Name <span style="color:var(--muted);font-size:10px;">(optional)</span></label>
-          <input type="text" id="name-input" placeholder="e.g. Maria" autocomplete="name" />
-        </div>
+  <!-- Main container -->
+  <main class="w-full max-w-[560px] px-6 pt-14 pb-20 relative z-10">
+    
+    <!-- Hero -->
+    <div class="text-center mb-11">
+      <div class="inline-flex items-center gap-1.5 bg-accent-glow border border-accent/25 rounded-full px-3 py-1.5 font-mono text-[11px] text-accent mb-4.5">
+        <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-dot"></div>
+        AI-powered · Instant triage
       </div>
-
-      <div class="form-group">
-        <label>Describe the Issue</label>
-        <textarea id="msg-textarea"
-          placeholder="e.g. Water is leaking from the ceiling in my bedroom. It started about 10 minutes ago..."
-        ></textarea>
-        <div class="voice-row" style="margin-top:8px;">
-          <button class="voice-btn" id="voice-btn" type="button" onclick="toggleVoice()">
-            🎤 <span id="voice-btn-label">Speak your issue</span>
-          </button>
-          <span class="voice-status" id="voice-status" style="display:none;">Listening...</span>
-        </div>
-      </div>
-
-      <button class="submit-btn" id="submit-btn" onclick="submitRequest()">
-        Submit Request ⚡
-      </button>
+      <h1 class="font-head text-[28px] sm:text-4xl font-extrabold tracking-[-1px] leading-tight mb-3 bg-[linear-gradient(135deg,#fff_40%,var(--color-accent))] bg-clip-text text-transparent">
+        Report a Maintenance Issue
+      </h1>
+      <p class="text-text-muted text-[15px] leading-relaxed font-light">
+        Describe your problem and our AI will prioritise it instantly.<br/>We'll get the right person to you as fast as possible.
+      </p>
     </div>
 
-    <!-- Processing Steps -->
-    <div id="processing-panel">
-      <div style="font-family:var(--head);font-size:16px;font-weight:700;margin-bottom:4px;">Processing your request...</div>
-      <div style="font-size:12px;color:var(--muted);">Our AI is analysing your issue right now</div>
-      <div class="processing-steps">
-        <div class="step" id="step-1"><span class="step-icon">📨</span> Request received<div class="step-dot"></div></div>
-        <div class="step" id="step-2"><span class="step-icon">🧠</span> AI analysing urgency &amp; category<div class="step-dot"></div></div>
-        <div class="step" id="step-3"><span class="step-icon">⚡</span> Prioritising your request<div class="step-dot"></div></div>
-        <div class="step" id="step-4"><span class="step-icon">📋</span> Briefing maintenance team<div class="step-dot"></div></div>
-        <div class="step" id="step-5"><span class="step-icon">✅</span> Confirmation ready<div class="step-dot"></div></div>
+    <!-- Form Card -->
+    <div class="bg-surface border border-border-base rounded-2xl p-5 sm:p-7 transition-colors duration-200 focus-within:border-border-focus" id="form-card">
+      <div id="form-view">
+        <div class="flex flex-col sm:flex-row gap-2.5 mb-4.5">
+          <div class="flex-1">
+            <label class="block text-xs font-mono text-text-muted uppercase tracking-[0.5px] mb-2">Your Unit / Apt. No.</label>
+            <input type="text" id="apt-input" placeholder="e.g. Apt 4B" autocomplete="off" class="w-full bg-surface-alt border border-border-focus rounded-xl text-text-main px-3.5 py-3 font-sans text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-text-muted appearance-none" />
+          </div>
+          <div class="flex-1">
+            <label class="block text-xs font-mono text-text-muted uppercase tracking-[0.5px] mb-2">Your Name <span class="text-text-muted text-[10px] lowercase">(optional)</span></label>
+            <input type="text" id="name-input" placeholder="e.g. Maria" autocomplete="name" class="w-full bg-surface-alt border border-border-focus rounded-xl text-text-main px-3.5 py-3 font-sans text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-text-muted appearance-none" />
+          </div>
+        </div>
+
+        <div class="mb-4.5">
+          <label class="block text-xs font-mono text-text-muted uppercase tracking-[0.5px] mb-2">Describe the Issue</label>
+          <textarea id="msg-textarea" placeholder="e.g. Water is leaking from the ceiling in my bedroom. It started about 10 minutes ago..." class="w-full bg-surface-alt border border-border-focus rounded-xl text-text-main px-3.5 py-3 font-sans text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-text-muted appearance-none resize-none min-h-[110px] leading-relaxed"></textarea>
+          
+          <div class="flex items-center gap-2.5 mt-2">
+            <!-- Utilizing arbitrary styling '&.listening' for JS class toggles directly in HTML -->
+            <button class="flex items-center gap-1.5 bg-surface-alt border border-border-focus rounded-lg text-text-muted px-3.5 py-2 font-sans text-xs cursor-pointer transition-all duration-150 hover:border-voice hover:text-voice [&.listening]:bg-voice/10 [&.listening]:border-voice[&.listening]:text-voice [&.listening]:animate-mic-pulse" id="voice-btn" type="button" onclick="toggleVoice()">
+              🎤 <span id="voice-btn-label">Speak your issue</span>
+            </button>
+            <span class="text-xs text-voice font-mono" id="voice-status" style="display:none;">Listening...</span>
+          </div>
+        </div>
+
+        <button class="w-full p-3.5 bg-accent text-page border-none rounded-xl font-head text-[15px] font-bold tracking-[-0.2px] cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 mt-1.5 hover:bg-accent-hover hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgba(0,217,163,0.25)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" id="submit-btn" onclick="submitRequest()">
+          Submit Request ⚡
+        </button>
+      </div>
+
+      <!-- Processing Steps -->
+      <div id="processing-panel" style="display: none;" class="text-center py-3">
+        <div class="font-head text-base font-bold mb-1">Processing your request...</div>
+        <div class="text-xs text-text-muted mb-4">Our AI is analysing your issue right now</div>
+        
+        <!-- group/step logic allows child dot to naturally transition when JS adds classes to parent! -->
+        <div class="flex flex-col text-left gap-1">
+          <div class="step group/step flex items-center gap-2.5 py-2 text-[13px] text-text-muted transition-colors duration-300 [&.active]:text-text-main [&.done]:text-accent" id="step-1">
+            <span class="text-base w-6 text-center">📨</span> Request received
+            <div class="w-2 h-2 rounded-full bg-border-focus ml-auto shrink-0 group-[.active]/step:bg-accent group-[.active]/step:animate-pulse-dot group-[.done]/step:bg-accent"></div>
+          </div>
+          <div class="step group/step flex items-center gap-2.5 py-2 text-[13px] text-text-muted transition-colors duration-300 [&.active]:text-text-main[&.done]:text-accent" id="step-2">
+            <span class="text-base w-6 text-center">🧠</span> AI analysing urgency &amp; category
+            <div class="w-2 h-2 rounded-full bg-border-focus ml-auto shrink-0 group-[.active]/step:bg-accent group-[.active]/step:animate-pulse-dot group-[.done]/step:bg-accent"></div>
+          </div>
+          <div class="step group/step flex items-center gap-2.5 py-2 text-[13px] text-text-muted transition-colors duration-300[&.active]:text-text-main [&.done]:text-accent" id="step-3">
+            <span class="text-base w-6 text-center">⚡</span> Prioritising your request
+            <div class="w-2 h-2 rounded-full bg-border-focus ml-auto shrink-0 group-[.active]/step:bg-accent group-[.active]/step:animate-pulse-dot group-[.done]/step:bg-accent"></div>
+          </div>
+          <div class="step group/step flex items-center gap-2.5 py-2 text-[13px] text-text-muted transition-colors duration-300 [&.active]:text-text-main [&.done]:text-accent" id="step-4">
+            <span class="text-base w-6 text-center">📋</span> Briefing maintenance team
+            <div class="w-2 h-2 rounded-full bg-border-focus ml-auto shrink-0 group-[.active]/step:bg-accent group-[.active]/step:animate-pulse-dot group-[.done]/step:bg-accent"></div>
+          </div>
+          <div class="step group/step flex items-center gap-2.5 py-2 text-[13px] text-text-muted transition-colors duration-300 [&.active]:text-text-main [&.done]:text-accent" id="step-5">
+            <span class="text-base w-6 text-center">✅</span> Confirmation ready
+            <div class="w-2 h-2 rounded-full bg-border-focus ml-auto shrink-0 group-[.active]/step:bg-accent group-[.active]/step:animate-pulse-dot group-[.done]/step:bg-accent"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation -->
+      <div id="confirm-panel" style="display: none;">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-11 h-11 rounded-xl bg-status-green/15 border border-status-green/30 flex items-center justify-center text-xl shrink-0">✅</div>
+          <div class="text-left">
+            <div class="font-head text-lg font-bold leading-tight">Request Submitted</div>
+            <div class="text-xs text-text-muted mt-0.5">Our team has been notified</div>
+            <div class="font-mono text-[11px] text-accent mt-0.5" id="confirm-ref"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 mb-4">
+          <div class="bg-surface-alt border border-border-focus rounded-xl p-3 text-left">
+            <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">⚡ Priority Level</div>
+            <div class="text-[13px] font-medium" id="confirm-urgency"></div>
+          </div>
+          <div class="bg-surface-alt border border-border-focus rounded-xl p-3 text-left">
+            <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">🕐 Expected Response</div>
+            <div class="text-[13px] font-medium" id="confirm-response"></div>
+          </div>
+          <div class="bg-surface-alt border border-border-focus rounded-xl p-3 text-left">
+            <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">🔧 Issue Type</div>
+            <div class="text-[13px] font-medium" id="confirm-category"></div>
+          </div>
+          <div class="bg-surface-alt border border-border-focus rounded-xl p-3 text-left">
+            <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">🏠 Your Unit</div>
+            <div class="text-[13px] font-medium" id="confirm-apt"></div>
+          </div>
+        </div>
+
+        <div class="bg-accent-glow border border-accent/20 rounded-xl p-3.5 mb-4 text-left">
+          <div class="font-mono text-[10px] text-accent uppercase tracking-[0.5px] mb-1.5">💡 Immediate Advice</div>
+          <div class="text-[13px] text-text-main leading-relaxed" id="confirm-advice"></div>
+        </div>
+
+        <hr class="border-none border-t border-border-base my-4.5" />
+        <button class="w-full p-3 bg-surface-alt border border-border-focus rounded-xl text-text-main font-sans text-[13px] font-medium cursor-pointer transition-all duration-150 hover:border-accent hover:text-accent" onclick="resetForm()">
+          + Report Another Issue
+        </button>
       </div>
     </div>
+  </main>
 
-    <!-- Confirmation -->
-    <div id="confirm-panel">
-      <div class="confirm-header">
-        <div class="confirm-icon">✅</div>
-        <div>
-          <div class="confirm-title">Request Submitted</div>
-          <div class="confirm-sub">Our team has been notified</div>
-          <div class="ref-id" id="confirm-ref"></div>
-        </div>
-      </div>
+  <!-- Footer -->
+  <footer class="w-full text-center p-6 text-text-muted text-[11px] font-mono border-t border-border-base relative z-10">
+    PropertyOS · AI Operations Platform · &copy; 2025 Give(a)Go
+  </footer>
 
-      <div class="confirm-grid">
-        <div class="confirm-chip">
-          <div class="cc-label">⚡ Priority Level</div>
-          <div class="cc-value" id="confirm-urgency"></div>
-        </div>
-        <div class="confirm-chip">
-          <div class="cc-label">🕐 Expected Response</div>
-          <div class="cc-value" id="confirm-response"></div>
-        </div>
-        <div class="confirm-chip">
-          <div class="cc-label">🔧 Issue Type</div>
-          <div class="cc-value" id="confirm-category"></div>
-        </div>
-        <div class="confirm-chip">
-          <div class="cc-label">🏠 Your Unit</div>
-          <div class="cc-value" id="confirm-apt"></div>
-        </div>
-      </div>
+  <!-- Toast -->
+  <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-2 z-[9999]"></div>
 
-      <div class="advice-box">
-        <div class="advice-label">💡 Immediate Advice</div>
-        <div class="advice-text" id="confirm-advice"></div>
-      </div>
+  <script>
+    let recognition = null;
+    let isListening = false;
 
-      <hr class="divider" />
-      <button class="new-report-btn" onclick="resetForm()">+ Report Another Issue</button>
-    </div>
-  </div>
-</main>
+    // ── Toast Updated to inject tailwind layout natively ──
+    function toast(msg, type='info') {
+      const icons = {success:'✅', error:'❌', info:'ℹ️'};
+      const el = document.createElement('div');
+      const borderColor = type === 'error' ? 'border-status-red/40' : 'border-border-focus';
+      
+      el.className = `bg-surface border ${borderColor} rounded-xl py-3 px-4 flex items-center gap-2.5 text-[13px] min-w-[260px] shadow-[0_8px_24px_rgba(0,0,0,0.5)] animate-toast-in`;
+      el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
+      document.getElementById('toast-container').appendChild(el);
+      
+      setTimeout(() => { 
+        el.style.opacity = '0'; 
+        el.style.transition = 'opacity 0.3s'; 
+        setTimeout(() => el.remove(), 300); 
+      }, 3500);
+    }
 
-<footer>PropertyOS · AI Operations Platform · &copy; 2025 Give(a)Go</footer>
+    // ── Form logic remains clean ──
+    async function submitRequest() {
+      const message = document.getElementById('msg-textarea').value.trim();
+      const apt     = document.getElementById('apt-input').value.trim() || null;
 
-<div id="toast-container"></div>
+      if (!message) { toast('Please describe your issue.', 'error'); return; }
+      if (!apt)     { toast('Please enter your apartment / unit number.', 'error'); return; }
 
-<script>
-  let recognition = null;
-  let isListening = false;
+      stopVoice();
 
-  // ── Toast ──────────────────────────────────────────────────────────────
-  function toast(msg, type='info') {
-    const icons = {success:'✅', error:'❌', info:'ℹ️'};
-    const el = document.createElement('div');
-    el.className = `toast ${type}`;
-    el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span>${msg}</span>`;
-    document.getElementById('toast-container').appendChild(el);
-    setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(()=>el.remove(), 300); }, 3500);
-  }
+      document.getElementById('form-view').style.display = 'none';
+      document.getElementById('processing-panel').style.display = '';
 
-  // ── Submit ─────────────────────────────────────────────────────────────
-  async function submitRequest() {
-    const message = document.getElementById('msg-textarea').value.trim();
-    const apt     = document.getElementById('apt-input').value.trim() || null;
+      await animateSteps();
 
-    if (!message) { toast('Please describe your issue.', 'error'); return; }
-    if (!apt)     { toast('Please enter your apartment / unit number.', 'error'); return; }
+      try {
+        const res = await fetch('/api/triage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message, apartment_ref: apt }),
+        });
+        const record = await res.json();
+        if (!res.ok) throw new Error(record.error || 'Server error');
+        showConfirmation(record);
+      } catch(e) {
+        document.getElementById('processing-panel').style.display = 'none';
+        document.getElementById('form-view').style.display = '';
+        toast('Error: ' + e.message, 'error');
+      }
+    }
 
-    stopVoice();
+    async function animateSteps() {
+      const steps =['step-1','step-2','step-3','step-4','step-5'];
+      const delays =[300, 700, 1200, 1800, 2400];
+      for (let i = 0; i < steps.length; i++) {
+        await sleep(delays[i] - (i > 0 ? delays[i-1] : 0));
+        if (i > 0) document.getElementById(steps[i-1]).classList.replace('active','done');
+        document.getElementById(steps[i]).classList.add('active');
+      }
+      await sleep(600);
+      document.getElementById(steps[steps.length-1]).classList.replace('active','done');
+      await sleep(300);
+    }
 
-    // Switch to processing view
-    document.getElementById('form-view').style.display = 'none';
-    document.getElementById('processing-panel').style.display = '';
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-    await animateSteps();
+    function showConfirmation(record) {
+      document.getElementById('processing-panel').style.display = 'none';
+      document.getElementById('confirm-panel').style.display = '';
 
-    try {
-      const res = await fetch('/api/triage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, apartment_ref: apt }),
-      });
-      const record = await res.json();
-      if (!res.ok) throw new Error(record.error || 'Server error');
-      showConfirmation(record);
-    } catch(e) {
+      // Tapped right into Tailwind engine css variables we declared
+      const urgencyColors = { 
+        Emergency:'var(--color-status-red)', 
+        High:'var(--color-status-amber)', 
+        Medium:'var(--color-status-blue)', 
+        Low:'var(--color-status-green)' 
+      };
+      const urgencyEmoji  = { Emergency:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
+
+      document.getElementById('confirm-ref').textContent = `Reference: #${record.id}`;
+      
+      const u = document.getElementById('confirm-urgency');
+      u.textContent = `${urgencyEmoji[record.urgency]||''} ${record.urgency}`;
+      u.style.color = urgencyColors[record.urgency] || 'var(--color-text-main)';
+      
+      document.getElementById('confirm-response').textContent = record.response_time || '—';
+      document.getElementById('confirm-category').textContent = record.category || '—';
+      document.getElementById('confirm-apt').textContent = record.apartment_ref || '—';
+      document.getElementById('confirm-advice').textContent = record.tenant_advice || '—';
+    }
+
+    function resetForm() {
+      document.getElementById('confirm-panel').style.display = 'none';
       document.getElementById('processing-panel').style.display = 'none';
       document.getElementById('form-view').style.display = '';
-      toast('Error: ' + e.message, 'error');
+      document.getElementById('msg-textarea').value = '';
+      document.getElementById('apt-input').value = '';
+      document.getElementById('name-input').value = '';['step-1','step-2','step-3','step-4','step-5'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('active','done');
+      });
+      document.getElementById('msg-textarea').focus();
     }
-  }
 
-  async function animateSteps() {
-    const steps = ['step-1','step-2','step-3','step-4','step-5'];
-    const delays = [300, 700, 1200, 1800, 2400];
-    for (let i = 0; i < steps.length; i++) {
-      await sleep(delays[i] - (i > 0 ? delays[i-1] : 0));
-      if (i > 0) document.getElementById(steps[i-1]).classList.replace('active','done');
-      document.getElementById(steps[i]).classList.add('active');
+    function toggleVoice() {
+      if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        toast('Voice input only works in Chrome or Edge.', 'error'); return;
+      }
+      isListening ? stopVoice() : startVoice();
     }
-    await sleep(600);
-    document.getElementById(steps[steps.length-1]).classList.replace('active','done');
-    await sleep(300);
-  }
 
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+    function startVoice() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      recognition = new SR();
+      recognition.lang = 'en-IE';
+      recognition.interimResults = true;
+      recognition.continuous = false;
 
-  function showConfirmation(record) {
-    document.getElementById('processing-panel').style.display = 'none';
-    document.getElementById('confirm-panel').style.display = '';
+      recognition.onstart = () => {
+        isListening = true;
+        document.getElementById('voice-btn').classList.add('listening');
+        document.getElementById('voice-btn-label').textContent = 'Listening...';
+        document.getElementById('voice-status').style.display = '';
+      };
+      recognition.onresult = (e) => {
+        const t = e.results[0][0].transcript;
+        document.getElementById('msg-textarea').value = t;
+        if (e.results[0].isFinal) stopVoice();
+      };
+      recognition.onerror = (e) => { toast('Voice error: '+e.error,'error'); stopVoice(); };
+      recognition.onend = stopVoice;
+      recognition.start();
+    }
 
-    const urgencyColors = { Emergency:'var(--red)', High:'var(--amber)', Medium:'var(--blue)', Low:'var(--green)' };
-    const urgencyEmoji  = { Emergency:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
+    function stopVoice() {
+      isListening = false;
+      document.getElementById('voice-btn').classList.remove('listening');
+      document.getElementById('voice-btn-label').textContent = 'Speak your issue';
+      document.getElementById('voice-status').style.display = 'none';
+      if (recognition) { try{recognition.stop();}catch(e){} recognition=null; }
+    }
 
-    document.getElementById('confirm-ref').textContent = `Reference: #${record.id}`;
-    const u = document.getElementById('confirm-urgency');
-    u.textContent = `${urgencyEmoji[record.urgency]||''} ${record.urgency}`;
-    u.style.color = urgencyColors[record.urgency] || 'var(--text)';
-    document.getElementById('confirm-response').textContent = record.response_time || '—';
-    document.getElementById('confirm-category').textContent = record.category || '—';
-    document.getElementById('confirm-apt').textContent = record.apartment_ref || '—';
-    document.getElementById('confirm-advice').textContent = record.tenant_advice || '—';
-  }
-
-  function resetForm() {
-    document.getElementById('confirm-panel').style.display = 'none';
-    document.getElementById('processing-panel').style.display = 'none';
-    document.getElementById('form-view').style.display = '';
-    document.getElementById('msg-textarea').value = '';
-    document.getElementById('apt-input').value = '';
-    document.getElementById('name-input').value = '';
-    // Reset steps
-    ['step-1','step-2','step-3','step-4','step-5'].forEach(id => {
-      const el = document.getElementById(id);
-      el.classList.remove('active','done');
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && e.ctrlKey) submitRequest();
     });
-    document.getElementById('msg-textarea').focus();
-  }
-
-  // ── Voice ──────────────────────────────────────────────────────────────
-  function toggleVoice() {
-    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast('Voice input only works in Chrome or Edge.', 'error'); return;
-    }
-    isListening ? stopVoice() : startVoice();
-  }
-
-  function startVoice() {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SR();
-    recognition.lang = 'en-IE';
-    recognition.interimResults = true;
-    recognition.continuous = false;
-
-    recognition.onstart = () => {
-      isListening = true;
-      document.getElementById('voice-btn').classList.add('listening');
-      document.getElementById('voice-btn-label').textContent = 'Listening...';
-      document.getElementById('voice-status').style.display = '';
-    };
-    recognition.onresult = (e) => {
-      const t = e.results[0][0].transcript;
-      document.getElementById('msg-textarea').value = t;
-      if (e.results[0].isFinal) stopVoice();
-    };
-    recognition.onerror = (e) => { toast('Voice error: '+e.error,'error'); stopVoice(); };
-    recognition.onend = stopVoice;
-    recognition.start();
-  }
-
-  function stopVoice() {
-    isListening = false;
-    document.getElementById('voice-btn').classList.remove('listening');
-    document.getElementById('voice-btn-label').textContent = 'Speak your issue';
-    document.getElementById('voice-status').style.display = 'none';
-    if (recognition) { try{recognition.stop();}catch(e){} recognition=null; }
-  }
-
-  // ── Enter to submit ────────────────────────────────────────────────────
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.ctrlKey) submitRequest();
-  });
-</script>
+  </script>
 </body>
 </html>
