@@ -321,14 +321,14 @@ def api_get_comms_categorized():
 
 
 @app.route("/api/comms/threads")
-def api_get_comms_threads():
+def api_comms_threads():
     """Return all threads sorted by urgency score."""
     threads = database.get_all_threads()
     return jsonify(threads), 200
 
 
 @app.route("/api/comms/analytics")
-def api_get_comms_analytics():
+def api_comms_analytics():
     """Aggregated comms stats."""
     analytics = database.get_comms_analytics()
     by_priority = analytics.get("by_priority", {})

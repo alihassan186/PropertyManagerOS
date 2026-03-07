@@ -1,77 +1,96 @@
-@import "tailwindcss";
-/* Tell Tailwind exactly where to look for your HTML files */
-@source "../../templates";
-/* 
-Why this matters: The @source directive tells the Tailwind compiler to scan your Flask templates directory[4]. 
-It will dynamically find exactly which CSS classes you use in your HTML and only compile those into your final file. This keeps your web app lightning-fast.
-
-*/
-
 /* static/src/input.css */
 @import "tailwindcss";
+
+/* Tell Tailwind exactly where to look for your HTML files */
 @source "../../templates";
 
-/* Theme colors */
 @theme {
-  /* ── 1. PRIMITIVES (The Raw Scales) ── */
-  --color-neutral-950: #07090F;
-  --color-neutral-900: #0F1117;
-  --color-neutral-800: #161922;
-  --color-neutral-700: #1E2130;
-  --color-neutral-600: #2A2F45;
-  --color-neutral-400: #6B7280;
-  --color-neutral-50:  #EEEEf6;
+  /* ── 1. PRIMITIVES (The Lette.ai Raw Scales) ── */
+  /* Extracted directly from Lette.ai's Framer tokens */
+  --color-lette-white: #ffffff;
+  --color-lette-50:    #f3f3f1;
+  --color-lette-100:   #edede9;
+  --color-lette-200:   #e8e6e4;
+  --color-lette-300:   #daded1;
+  --color-lette-400:   #d2d0cf;
+  --color-lette-500:   #bcbdbf;
+  --color-lette-600:   #7e8083;
+  --color-lette-700:   #67675a;
+  --color-lette-800:   #363435;
+  --color-lette-900:   #1e1a1c;
+  --color-lette-950:   #0f1016;
 
-  --color-brand-500: #00D9A3;
-  --color-brand-600: #00c49a;
-  
+  /* Retained your original status colors for hackathon app functionality */
   --color-status-red:   #EF4444;
   --color-status-amber: #F59E0B;
   --color-status-green: #10B981;
-  --color-status-blue:  #4F8FFF;
+  --color-status-blue:  #433fff; /* Updated to Lette's blue token */
   --color-status-pink:  #FF6B9D;
 
   /* ── 2. SEMANTICS (The Usage Contexts) ── */
-  /* Generates utilities like `bg-page`, `text-surface`, etc. */
-  --color-page:         var(--color-neutral-950);
-  --color-surface:      var(--color-neutral-900);
-  --color-surface-alt:  var(--color-neutral-800);
-  --color-border-base:  var(--color-neutral-700);
-  --color-border-focus: var(--color-neutral-600);
-
-  --color-text-main:    var(--color-neutral-50);
-  --color-text-muted:   var(--color-neutral-400);
+  /* This flips your app to Lette's Premium Light Mode */
   
-  --color-accent:       var(--color-brand-500);
-  --color-accent-hover: var(--color-brand-600);
-  --color-accent-glow:  rgba(0, 217, 163, 0.15);
-  --color-voice:        var(--color-status-pink);
+  /* Backgrounds */
+  --color-page:         var(--color-lette-100); /* Lette's signature beige/sand background */
+  --color-surface:      var(--color-lette-white); /* Crisp white cards */
+  --color-surface-alt:  var(--color-lette-50); /* Very faint grey/beige for inputs/hovers */
+  
+  /* Borders */
+  --color-border-base:  var(--color-lette-300); 
+  --color-border-focus: var(--color-lette-400);
+
+  /* Text */
+  --color-text-main:    var(--color-lette-950); /* Dark, near-black blue for max contrast */
+  --color-text-muted:   var(--color-lette-700); /* Olive-grey for subtitles/paragraphs */
+  
+  /* Actions (Lette uses solid dark colors for primary CTAs) */
+  --color-accent:       var(--color-lette-950);
+  --color-accent-hover: var(--color-lette-800);
+  --color-accent-glow:  rgba(15, 16, 22, 0.15); /* #0f1016 at 15% opacity */
+  
+  --color-voice:        var(--color-status-blue);
 
   /* ── 3. TYPOGRAPHY & ANIMATIONS ── */
-  --font-sans: "DM Sans", sans-serif;
-  --font-head: "Syne", sans-serif;
-  --font-mono: "DM Mono", monospace;
+  
+  /* Standardized strict & friendly Sans-Serif stacks with robust OS fallbacks */
+  --font-sans: "Geist", "Inter", "SF Pro Text", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
+  
+  /* Headings: Exclusively Inter + strictly sans-serif fallbacks */
+  --font-head: "Inter", "SF Pro Display", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", sans-serif;
+  
+  /* Monospace with developer-friendly system fallbacks */
+  --font-mono: "Fragment Mono", "DM Mono", "JetBrains Mono", "Menlo", "Monaco", "Consolas", "Courier New", monospace;
 
   --animate-pulse-dot: pulse-dot 2s infinite;
   --animate-mic-pulse: mic-pulse 1.2s infinite;
   --animate-toast-in:  toast-in 0.2s ease;
+  --animate-slide-in:  slide-in 0.2s ease;
+  --animate-fade-in:   fade-in 0.15s ease;
 
   @keyframes pulse-dot {
-    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(0,217,163,0.4); }
-    50%      { opacity: 0.8; box-shadow: 0 0 0 4px rgba(0,217,163,0); }
+    /* Adjusted shadow to match the new dark accent color */
+    0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(15,16,22,0.3); }
+    50%      { opacity: 0.8; box-shadow: 0 0 0 4px rgba(15,16,22,0); }
   }
   @keyframes mic-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(255,107,157,0.3); }
-    50%      { box-shadow: 0 0 0 6px rgba(255,107,157,0); }
+    0%, 100% { box-shadow: 0 0 0 0 rgba(67,63,255,0.3); }
+    50%      { box-shadow: 0 0 0 6px rgba(67,63,255,0); }
   }
   @keyframes toast-in {
     from { opacity: 0; transform: translateY(8px); }
     to   { opacity: 1; transform: translateY(0); }
   }
+  @keyframes slide-in {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
 }
 
 /* ── CUSTOM OVERRIDES (Minimal) ── */
-/* Webkit Scrollbars still require standard CSS targeting */
-::-webkit-scrollbar { width: 5px; }
-::-webkit-scrollbar-track { background: var(--color-page); }
-::-webkit-scrollbar-thumb { background: var(--color-border-focus); border-radius: 4px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-lette-300); border-radius: 4px; }

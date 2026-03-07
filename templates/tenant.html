@@ -7,18 +7,19 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  
+  <!-- Added Inter (400-800 weights for robust headings), kept Geist for body, Fragment Mono for code/pills -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+    
   <!-- Use url_for as previously taught in the pipeline setup -->
   <link rel="stylesheet" href="{{ url_for('static', filename='dist/output.css') }}">
 </head>
 <body class="bg-page text-text-main font-sans min-h-screen flex flex-col items-center relative">
 
   <!-- Background Decoration -->
-  <div class="fixed top-[-200px] left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-[radial-gradient(ellipse,rgba(0,217,163,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
+  <div class="fixed -top-50 left-1/2 -translate-x-1/2 w-200 h-200 bg-[radial-gradient(ellipse,rgba(0,217,163,0.06)_0%,transparent_70%)] pointer-events-none z-0"></div>
 
   <!-- Top nav -->
-  <header class="w-full px-8 py-4 flex items-center justify-between border-b border-border-base bg-page/80 backdrop-blur-md sticky top-0 z-[100]">
+  <header class="w-full px-8 py-4 flex items-center justify-between border-b border-border-base bg-page/80 backdrop-blur-md sticky top-0 z-100">
     <div class="flex items-center gap-2.5 font-head text-[17px] font-extrabold tracking-[-0.3px]">
       <div class="w-7 h-7 bg-accent rounded-lg flex items-center justify-center text-sm">🏠</div>
       PropertyOS
@@ -29,7 +30,7 @@
   </header>
 
   <!-- Main container -->
-  <main class="w-full max-w-[560px] px-6 pt-14 pb-20 relative z-10">
+  <main class="w-full max-w-140 px-6 pt-14 pb-20 relative z-10">
     
     <!-- Hero -->
     <div class="text-center mb-11">
@@ -37,11 +38,11 @@
         <div class="w-1.5 h-1.5 rounded-full bg-accent animate-pulse-dot"></div>
         AI-powered · Instant triage
       </div>
-      <h1 class="font-head text-[28px] sm:text-4xl font-extrabold tracking-[-1px] leading-tight mb-3 bg-[linear-gradient(135deg,#fff_40%,var(--color-accent))] bg-clip-text text-transparent">
+      <h1 class="font-head text-[28px] sm:text-4xl text-black font-extrabold tracking-[-1px] leading-tight mb-3 bg-clip-text">
         Report a Maintenance Issue
       </h1>
       <p class="text-text-muted text-[15px] leading-relaxed font-light">
-        Describe your problem and our AI will prioritise it instantly.<br/>We'll get the right person to you as fast as possible.
+        Describe your problem and our team will be prioritise it instantly.<br/>We'll get the right person to you as fast as possible.
       </p>
     </div>
 
@@ -61,7 +62,7 @@
 
         <div class="mb-4.5">
           <label class="block text-xs font-mono text-text-muted uppercase tracking-[0.5px] mb-2">Describe the Issue</label>
-          <textarea id="msg-textarea" placeholder="e.g. Water is leaking from the ceiling in my bedroom. It started about 10 minutes ago..." class="w-full bg-surface-alt border border-border-focus rounded-xl text-text-main px-3.5 py-3 font-sans text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-text-muted appearance-none resize-none min-h-[110px] leading-relaxed"></textarea>
+          <textarea id="msg-textarea" placeholder="e.g. Water is leaking from the ceiling in my bedroom. It started about 10 minutes ago..." class="w-full bg-surface-alt border border-border-focus rounded-xl text-text-main px-3.5 py-3 font-sans text-sm outline-none transition-all duration-150 focus:border-accent focus:ring-4 focus:ring-accent/10 placeholder:text-text-muted appearance-none resize-none min-h-27.5 leading-relaxed"></textarea>
           
           <div class="flex items-center gap-2.5 mt-2">
             <!-- Utilizing arbitrary styling '&.listening' for JS class toggles directly in HTML -->
@@ -72,7 +73,7 @@
           </div>
         </div>
 
-        <button class="w-full p-3.5 bg-accent text-page border-none rounded-xl font-head text-[15px] font-bold tracking-[-0.2px] cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 mt-1.5 hover:bg-accent-hover hover:-translate-y-[1px] hover:shadow-[0_8px_24px_rgba(0,217,163,0.25)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" id="submit-btn" onclick="submitRequest()">
+        <button class="w-full p-3.5 bg-accent text-page border-none rounded-xl font-head text-[15px] font-bold tracking-[-0.2px] cursor-pointer transition-all duration-150 flex items-center justify-center gap-2 mt-1.5 hover:bg-accent-hover hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(0,217,163,0.25)] active:translate-y-0 disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none" id="submit-btn" onclick="submitRequest()">
           Submit Request ⚡
         </button>
       </div>
@@ -152,11 +153,11 @@
 
   <!-- Footer -->
   <footer class="w-full text-center p-6 text-text-muted text-[11px] font-mono border-t border-border-base relative z-10">
-    PropertyOS · AI Operations Platform · &copy; 2025 Give(a)Go
+    PropertyOS · Tenant/Landlord Operations Platform · &copy; 2025 Give(a)Go
   </footer>
 
   <!-- Toast -->
-  <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-2 z-[9999]"></div>
+  <div id="toast-container" class="fixed bottom-6 right-6 flex flex-col gap-2 z-9999"></div>
 
   <script>
     let recognition = null;

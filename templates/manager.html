@@ -7,8 +7,9 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-  
+  <!-- Added Inter (400-800 weights for robust headings), kept Geist for body, Fragment Mono for code/pills -->
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Inter:wght@400;500;600;700;800&family=Fragment+Mono&display=swap" rel="stylesheet" />
+
   <!-- Required for Charts -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
   
@@ -354,9 +355,8 @@
   // ── Load Requests ──
   async function loadRequests() {
     try {
-      // FOR THE HACKATHON DEMO: Un-comment this fetch if API is connected
-      // const res = await fetch('/api/requests');
-      // allRequests = await res.json();
+      const res = await fetch('/api/requests');
+      allRequests = await res.json();
       
       renderQueue();
       renderOverviewRecent();

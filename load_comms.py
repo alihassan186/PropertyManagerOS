@@ -30,7 +30,6 @@ def load_json():
     if not os.path.exists(path):
         print(f"❌ JSON file not found: {path}")
         sys.exit(1)
-    print(f"📂 Loading data from: {os.path.basename(path)}")
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
     return data.get("emails", []), data.get("metadata", {})
@@ -75,7 +74,6 @@ def process_emails(emails):
         frm = email.get("from", {})
         sender_type = frm.get("type", "unknown")
 
-        # ── RESUME: skip already-analysed emails ────────────────────────
         existing = database.get_communication_by_email_id(email_id)
         if existing and existing.get("urgency") is not None:
             urgency = existing.get("urgency", "info")
@@ -83,6 +81,11 @@ def process_emails(emails):
                 critical_emails.append((email, existing))
             skipped += 1
             print(f"  [{i:3d}/{len(emails)}] {email_id} — SKIP (already {urgency.upper()})")
+            if not existing.get("auto_resolved"):
+                auto_payload = auto_resolver.maybe_auto_resolve(email, _record_to_analysis(existing))
+                if auto_payload:
+                    database.mark_communication_auto_resolved(email_id, auto_payload["note"], auto_payload.get("category"))
+                    print(f"        → 🤖 Auto-resolved ({auto_payload['category']})")
             continue
 
         print(f"  [{i:3d}/{len(emails)}] {email_id} — {subject[:40]}...")
@@ -90,6 +93,11 @@ def process_emails(emails):
         try:
             analysis = comms_engine.analyse_email(email)
             database.update_communication_ai(email_id, analysis)
+
+            auto_payload = auto_resolver.maybe_auto_resolve(email, analysis)
+            if auto_payload:
+                database.mark_communication_auto_resolved(email_id, auto_payload["note"], auto_payload.get("category"))
+                print(f"        → 🤖 Auto-resolved ({auto_payload['category']})")
 
             urgency = analysis.get("urgency", "info")
             score = analysis.get("urgency_score", 0)
@@ -111,13 +119,12 @@ def process_emails(emails):
             if urgency in ("critical", "high"):
                 critical_emails.append((email, analysis))
 
-            # Rate limiting: 1 second delay between calls
             time.sleep(1.0)
 
         except Exception as e:
             print(f"        ❌ Error: {e}")
             errors.append((email_id, str(e)))
-            time.sleep(2.0)  # Extra pause on error
+            time.sleep(2.0)
 
     newly_analysed = len(emails) - skipped - len(errors)
     print(f"\n✅ AI analysis done — {newly_analysed} new, {skipped} skipped, {len(errors)} errors. "
