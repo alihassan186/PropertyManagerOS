@@ -521,6 +521,373 @@
 
     /* ── Divider ───────────────────────────────────────────────────── */
     .divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+    .nav-divider { border: none; border-top: 1px solid var(--border); margin: 12px 8px; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--red);
+      color: white;
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      font-weight: 700;
+    }
+
+    /* ── Comms Views ───────────────────────────────────────────────── */
+    #commsView, #actionsView { display: none; }
+    #commsView.view-active, #actionsView.view-active { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+    #dashboardView { display: flex; flex-direction: column; flex: 1; min-height: 0; overflow: hidden; }
+    #dashboardView.view-hidden { display: none; }
+
+    /* Comms Stats Row */
+    .comms-stats {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+      padding: 14px 24px 0;
+      flex-shrink: 0;
+    }
+    .comms-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .comms-stat .cs-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.4px; }
+    .comms-stat .cs-value { font-family: var(--head); font-size: 24px; font-weight: 800; line-height: 1; }
+    .cs-critical .cs-value { color: var(--red); }
+    .cs-high .cs-value { color: var(--accent4); }
+    .cs-welfare .cs-value { color: #FF6B9D; }
+    .cs-legal .cs-value { color: #A78BFA; }
+    .cs-total .cs-value { color: var(--accent); }
+    .cs-actions .cs-value { color: var(--accent2); }
+
+    /* Comms layout */
+    .comms-layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 12px;
+      padding: 12px 24px 16px;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* Email list */
+    .comms-list-wrap {
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .comms-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+    .comms-filter-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .comms-filter-btn:hover, .comms-filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,217,163,0.08); }
+    .comms-search {
+      flex: 1;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 6px 10px;
+      font-size: 12px;
+      font-family: var(--sans);
+      outline: none;
+    }
+    .comms-search:focus { border-color: var(--accent); }
+    .comms-list { flex: 1; overflow-y: auto; min-height: 0; }
+
+    /* Email item card */
+    .email-card {
+      padding: 11px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-bottom: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      position: relative;
+    }
+    .email-card:hover { border-color: var(--accent); background: rgba(0,217,163,0.03); }
+    .email-card.selected { border-color: var(--accent); background: rgba(0,217,163,0.08); }
+    .email-card.urgency-critical { border-left: 3px solid var(--red); }
+    .email-card.urgency-high { border-left: 3px solid var(--accent4); }
+    .email-card.urgency-medium { border-left: 3px solid var(--accent2); }
+    .email-card.urgency-low { border-left: 3px solid var(--green); }
+    .email-card.urgency-info { border-left: 3px solid var(--border); }
+    .ec-top { display: flex; align-items: center; gap: 7px; margin-bottom: 4px; flex-wrap: wrap; }
+    .ec-score {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 700;
+      width: 32px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+    .score-critical { color: var(--red); }
+    .score-high { color: var(--accent4); }
+    .score-medium { color: var(--accent2); }
+    .score-low { color: var(--green); }
+    .score-info { color: var(--muted); }
+    .ec-sender { font-size: 12px; font-weight: 500; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ec-type-badge { font-family: var(--mono); font-size: 9px; padding: 1px 5px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+    .type-tenant { background: rgba(0,217,163,0.1); color: var(--accent); border: 1px solid rgba(0,217,163,0.2); }
+    .type-legal { background: rgba(167,139,250,0.1); color: #A78BFA; border: 1px solid rgba(167,139,250,0.2); }
+    .type-contractor { background: rgba(245,158,11,0.1); color: var(--accent4); border: 1px solid rgba(245,158,11,0.2); }
+    .type-internal { background: rgba(79,143,255,0.1); color: var(--accent2); border: 1px solid rgba(79,143,255,0.2); }
+    .type-landlord { background: rgba(255,107,157,0.1); color: var(--accent3); border: 1px solid rgba(255,107,157,0.2); }
+    .type-prospect { background: rgba(16,185,129,0.1); color: var(--green); border: 1px solid rgba(16,185,129,0.2); }
+    .type-system { background: rgba(107,114,128,0.1); color: var(--muted); border: 1px solid rgba(107,114,128,0.2); }
+    .ec-unread { width: 7px; height: 7px; border-radius: 50%; background: var(--accent2); flex-shrink: 0; }
+    .ec-subject { font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 3px; }
+    .ec-subject.unread { font-weight: 600; }
+    .ec-preview { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ec-bottom { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+    .ec-flag { font-size: 12px; }
+    .ec-unit { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+    .ec-time { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-left: auto; }
+
+    /* Email detail pane */
+    .comms-detail {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 0;
+    }
+    .cd-empty {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 10px;
+      color: var(--muted);
+    }
+    .cd-empty .emoji { font-size: 40px; }
+    .cd-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .cd-h-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .cd-subject { font-family: var(--head); font-size: 15px; font-weight: 700; flex: 1; line-height: 1.3; }
+    .cd-urgency-badge {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .ub-critical { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.4); }
+    .ub-high     { background: rgba(245,158,11,0.15); color: var(--accent4); border: 1px solid rgba(245,158,11,0.4); }
+    .ub-medium   { background: rgba(79,143,255,0.15); color: var(--accent2); border: 1px solid rgba(79,143,255,0.4); }
+    .ub-low      { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.4); }
+    .ub-info     { background: var(--surface2); color: var(--muted); border: 1px solid var(--border); }
+    .cd-meta { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .cd-meta-chip { font-family: var(--mono); font-size: 10px; color: var(--muted); background: var(--surface2); border: 1px solid var(--border); padding: 2px 7px; border-radius: 5px; }
+    .cd-actions-row { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 7px; flex-wrap: wrap; flex-shrink: 0; }
+
+    /* AI Summary panel */
+    .cd-ai-summary {
+      background: rgba(0,217,163,0.04);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 16px;
+      flex-shrink: 0;
+    }
+    .cd-ai-label { font-family: var(--mono); font-size: 10px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; }
+    .cd-ai-text { font-size: 12px; color: var(--text); line-height: 1.6; }
+
+    /* Flags */
+    .cd-flags { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .cd-flag-chip {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-weight: 500;
+    }
+    .flag-welfare    { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .flag-legal      { background: rgba(167,139,250,0.15); color: #A78BFA; border: 1px solid rgba(167,139,250,0.3); }
+    .flag-media      { background: rgba(245,158,11,0.15); color: var(--accent4); border: 1px solid rgba(245,158,11,0.3); }
+    .flag-vulnerable { background: rgba(255,107,157,0.15); color: var(--accent3); border: 1px solid rgba(255,107,157,0.3); }
+    .flag-recurring  { background: rgba(79,143,255,0.15); color: var(--accent2); border: 1px solid rgba(79,143,255,0.3); }
+    .flag-financial  { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .flag-deadline   { background: rgba(245,158,11,0.15); color: var(--accent4); border: 1px solid rgba(245,158,11,0.3); }
+
+    /* Recommended action box */
+    .cd-rec-action {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .cd-rec-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .cd-rec-text { font-size: 13px; color: var(--text); font-weight: 500; line-height: 1.5; }
+    .cd-deadline { font-family: var(--mono); font-size: 11px; color: var(--accent4); margin-top: 3px; }
+
+    /* Email body */
+    .cd-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
+    .cd-from { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .cd-from strong { color: var(--text); }
+    .cd-email-body { font-size: 13px; color: var(--text); line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+
+    /* Stream analysis box */
+    .cd-stream-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 12px 16px;
+      font-family: var(--mono);
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    .cd-stream-box.streaming::after { content: '▊'; color: var(--accent); animation: blink 0.7s infinite; }
+    .cd-stream-box.visible { display: block; }
+
+    /* Draft reply box */
+    .cd-reply-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      margin: 0 16px 12px;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--muted);
+      min-height: 60px;
+      display: none;
+      white-space: pre-wrap;
+    }
+    .cd-reply-box.visible { display: block; }
+    .cd-reply-box.loaded { color: var(--text); }
+
+    /* Thread view */
+    .cd-thread-panel {
+      border-top: 1px solid var(--border);
+      background: rgba(0,217,163,0.02);
+      padding: 10px 16px;
+      flex-shrink: 0;
+      display: none;
+    }
+    .cd-thread-panel.visible { display: block; }
+    .cdt-label { font-family: var(--mono); font-size: 10px; color: var(--accent); text-transform: uppercase; margin-bottom: 6px; }
+    .cdt-summary { font-size: 12px; color: var(--text); line-height: 1.6; margin-bottom: 6px; }
+    .cdt-status-badge { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 5px; }
+    .status-Open       { background: rgba(79,143,255,0.15); color: var(--accent2); border: 1px solid rgba(79,143,255,0.3); }
+    .status-Escalating { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+    .status-In.Progress { background: rgba(245,158,11,0.15); color: var(--accent4); border: 1px solid rgba(245,158,11,0.3); }
+    .status-Resolved   { background: rgba(16,185,129,0.15); color: var(--green); border: 1px solid rgba(16,185,129,0.3); }
+    .status-Awaiting.Response { background: rgba(107,114,128,0.15); color: var(--muted); border: 1px solid rgba(107,114,128,0.3); }
+
+    /* ── Actions Board ─────────────────────────────────────────────── */
+    .actions-layout {
+      padding: 16px 24px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .actions-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .actions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 10px;
+    }
+    .action-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.15s;
+      animation: slideIn 0.2s ease forwards;
+    }
+    .action-card:hover { border-color: var(--accent2); }
+    .action-card.done { opacity: 0.45; }
+    .action-card.urgency-critical { border-left: 3px solid var(--red); }
+    .action-card.urgency-high     { border-left: 3px solid var(--accent4); }
+    .action-card.urgency-medium   { border-left: 3px solid var(--accent2); }
+    .action-card.urgency-low      { border-left: 3px solid var(--green); }
+    .ac-top { display: flex; align-items: flex-start; gap: 8px; }
+    .ac-score {
+      font-family: var(--mono); font-size: 18px; font-weight: 800;
+      width: 36px; text-align: center; flex-shrink: 0; line-height: 1;
+    }
+    .ac-title { font-size: 13px; font-weight: 600; flex: 1; line-height: 1.4; color: var(--text); }
+    .ac-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .ac-bottom { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .ac-owner { font-family: var(--mono); font-size: 10px; background: var(--surface2); border: 1px solid var(--border); color: var(--muted); padding: 2px 6px; border-radius: 4px; }
+    .ac-deadline { font-family: var(--mono); font-size: 10px; color: var(--accent4); }
+    .ac-unit { font-family: var(--mono); font-size: 10px; color: var(--accent); }
+    .ac-done-btn {
+      margin-left: auto;
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--muted);
+      font-size: 11px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ac-done-btn:hover { border-color: var(--green); color: var(--green); }
+    .action-card.done .ac-done-btn { background: rgba(16,185,129,0.1); border-color: var(--green); color: var(--green); }
+
+    /* Welfare emergency banner */
+    .welfare-banner {
+      background: rgba(239,68,68,0.08);
+      border: 1px solid rgba(239,68,68,0.4);
+      border-radius: 10px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      animation: pulse-border 2s infinite;
+    }
+    @keyframes pulse-border {
+      0%,100% { border-color: rgba(239,68,68,0.4); }
+      50% { border-color: rgba(239,68,68,0.8); box-shadow: 0 0 0 4px rgba(239,68,68,0.05); }
+    }
+    .welfare-icon { font-size: 24px; flex-shrink: 0; }
+    .welfare-text .wt-title { font-family: var(--head); font-size: 14px; font-weight: 800; color: var(--red); margin-bottom: 4px; }
+    .welfare-text .wt-body { font-size: 12px; color: var(--text); line-height: 1.5; }
+    .welfare-text .wt-action { font-size: 12px; color: var(--red); font-weight: 600; margin-top: 5px; }
   </style>
 </head>
 
@@ -533,17 +900,26 @@
     <span>AI Operations · v1.0</span>
   </div>
   <nav class="nav">
-    <div class="nav-item active" onclick="showView('dashboard')">
+    <div class="nav-item active" onclick="showView('dashboard', this)">
       <span class="nav-icon">📊</span> Dashboard
     </div>
-    <div class="nav-item" onclick="showView('dashboard')">
+    <div class="nav-item" onclick="showView('dashboard', this)">
       <span class="nav-icon">📋</span> Request Queue
     </div>
-    <div class="nav-item" onclick="showView('dashboard')">
+    <div class="nav-item" onclick="showView('dashboard', this)">
       <span class="nav-icon">🤖</span> AutoPilot
     </div>
-    <div class="nav-item" onclick="showView('dashboard')">
+    <div class="nav-item" onclick="showView('dashboard', this)">
       <span class="nav-icon">📈</span> Analytics
+    </div>
+    <hr class="nav-divider" />
+    <div class="nav-item" onclick="showView('comms', this)">
+      <span class="nav-icon">📨</span> Comms Intelligence
+      <span class="nav-badge" id="nav-badge-comms" style="display:none;"></span>
+    </div>
+    <div class="nav-item" onclick="showView('actions', this)">
+      <span class="nav-icon">✅</span> Action Board
+      <span class="nav-badge" id="nav-badge-actions" style="display:none;"></span>
     </div>
   </nav>
   <div class="ai-status">
@@ -565,6 +941,9 @@
     <button class="btn btn-secondary" onclick="simulate()">⚡ Simulate</button>
     <button class="btn btn-primary" onclick="focusInput()">+ New Request</button>
   </div>
+
+  <!-- ── Dashboard View ──────────────────────────────────────────── -->
+  <div id="dashboardView">
 
   <!-- Content -->
   <div id="content">
@@ -718,6 +1097,169 @@
     </div>
 
   </div>
+  </div><!-- /#dashboardView -->
+
+  <!-- ── Comms Intelligence View ──────────────────────────────────── -->
+  <div id="commsView">
+
+    <!-- Comms Top Bar -->
+    <div class="comms-top-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <h2 style="font-family:var(--head);font-size:18px;font-weight:700;flex:1;letter-spacing:-0.3px;">📨 Comms Intelligence</h2>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="comms-topbar-info">Loading...</span>
+      <button class="btn btn-secondary" onclick="loadComms()">↻ Refresh</button>
+      <button class="btn btn-secondary" style="border-color:rgba(167,139,250,0.4);color:#A78BFA;" onclick="showThreadsModal()">🧵 Threads</button>
+    </div>
+
+    <!-- Stats -->
+    <div class="comms-stats" id="comms-stats">
+      <div class="comms-stat cs-critical"><span class="cs-label">🔴 Critical</span><span class="cs-value" id="cs-critical">—</span></div>
+      <div class="comms-stat cs-high"><span class="cs-label">🟠 High</span><span class="cs-value" id="cs-high">—</span></div>
+      <div class="comms-stat cs-welfare"><span class="cs-label">🚨 Welfare</span><span class="cs-value" id="cs-welfare">—</span></div>
+      <div class="comms-stat cs-legal"><span class="cs-label">⚖️ Legal</span><span class="cs-value" id="cs-legal">—</span></div>
+      <div class="comms-stat cs-total"><span class="cs-label">📧 Total</span><span class="cs-value" id="cs-total">—</span></div>
+      <div class="comms-stat cs-actions"><span class="cs-label">✅ Actions</span><span class="cs-value" id="cs-open-actions">—</span></div>
+    </div>
+
+    <!-- Welfare Banner (shown when welfare emails exist) -->
+    <div id="welfare-banner" style="display:none;margin:10px 24px 0;">
+      <div class="welfare-banner">
+        <span class="welfare-icon">🚨</span>
+        <div class="welfare-text">
+          <div class="wt-title">WELFARE EMERGENCY DETECTED</div>
+          <div class="wt-body" id="welfare-banner-text"></div>
+          <div class="wt-action">→ Contact Gardaí immediately. Do NOT delay.</div>
+        </div>
+        <button class="btn btn-secondary" onclick="filterByFlag('welfare_check_needed')" style="border-color:var(--red);color:var(--red);flex-shrink:0;">View Email</button>
+      </div>
+    </div>
+
+    <!-- Email list + detail layout -->
+    <div class="comms-layout">
+
+      <!-- Left: Email List -->
+      <div class="comms-list-wrap">
+        <div class="comms-toolbar">
+          <input type="text" class="comms-search" id="comms-search" placeholder="Search emails..." oninput="filterComms()" />
+          <button class="comms-filter-btn active" onclick="setCommsFilter('all', this)">All</button>
+          <button class="comms-filter-btn" onclick="setCommsFilter('critical', this)">🔴</button>
+          <button class="comms-filter-btn" onclick="setCommsFilter('high', this)">🟠</button>
+          <button class="comms-filter-btn" onclick="setCommsFilter('unread', this)">● Unread</button>
+        </div>
+        <div class="comms-list" id="comms-list">
+          <div class="empty-state"><div class="emoji">📭</div><p>No emails loaded. Run python load_comms.py first.</p></div>
+        </div>
+      </div>
+
+      <!-- Right: Email Detail -->
+      <div class="comms-detail" id="comms-detail">
+        <div class="cd-empty" id="cd-empty">
+          <div class="emoji">📨</div>
+          <p style="font-size:13px;">Select an email to view details</p>
+          <p style="font-size:11px;font-family:var(--mono);">Sorted by AI urgency score</p>
+        </div>
+
+        <!-- Detail content (hidden until email selected) -->
+        <div id="cd-content" style="display:none;flex-direction:column;overflow:hidden;min-height:0;flex:1;">
+
+          <!-- Header -->
+          <div class="cd-header">
+            <div class="cd-h-top">
+              <div class="cd-subject" id="cd-subject">—</div>
+              <span class="cd-urgency-badge" id="cd-urgency-badge">—</span>
+            </div>
+            <div class="cd-meta" id="cd-meta"></div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="cd-actions-row">
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="streamCommsAnalysis()">🧠 Live Analysis</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="draftCommsReply()">💬 Draft Reply</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="viewThread()">🧵 View Thread</button>
+            <button class="btn btn-secondary" style="font-size:11px;padding:5px 10px;" onclick="copyEmailBody()">📋 Copy</button>
+            <div class="spinner" id="cd-spinner" style="display:none;margin-left:4px;"></div>
+          </div>
+
+          <!-- AI Summary -->
+          <div class="cd-ai-summary" id="cd-ai-summary" style="display:none;">
+            <div class="cd-ai-label">🤖 AI Summary</div>
+            <div class="cd-ai-text" id="cd-ai-text">—</div>
+          </div>
+
+          <!-- Flags -->
+          <div class="cd-flags" id="cd-flags" style="display:none;"></div>
+
+          <!-- Recommended Action -->
+          <div class="cd-rec-action" id="cd-rec-action" style="display:none;">
+            <div class="cd-rec-label">⚡ Recommended Action</div>
+            <div class="cd-rec-text" id="cd-rec-text">—</div>
+            <div class="cd-deadline" id="cd-deadline"></div>
+          </div>
+
+          <!-- Stream Analysis Box -->
+          <div class="cd-stream-box" id="cd-stream-box"></div>
+
+          <!-- Draft Reply Box -->
+          <div style="padding:0;display:none;" id="cd-reply-wrap">
+            <div style="padding:8px 16px 4px;font-family:var(--mono);font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;">Draft Reply</div>
+            <div class="cd-reply-box visible" id="cd-reply-box">—</div>
+            <div style="padding:0 16px 8px;display:flex;gap:7px;">
+              <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="copyCommsReply()">📋 Copy Reply</button>
+            </div>
+          </div>
+
+          <!-- Thread Summary -->
+          <div class="cd-thread-panel" id="cd-thread-panel">
+            <div class="cdt-label">🧵 Thread Context</div>
+            <div class="cdt-summary" id="cdt-summary">—</div>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <span class="cdt-status-badge" id="cdt-status">—</span>
+              <span style="font-family:var(--mono);font-size:10px;color:var(--muted);" id="cdt-escalation"></span>
+            </div>
+          </div>
+
+          <!-- Email Body -->
+          <div class="cd-body" id="cd-body">
+            <div class="cd-from" id="cd-from"></div>
+            <div class="cd-email-body" id="cd-email-body">—</div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /.comms-layout -->
+
+  </div><!-- /#commsView -->
+
+  <!-- ── Action Board View ─────────────────────────────────────────── -->
+  <div id="actionsView">
+
+    <div class="comms-top-bar" style="background:var(--surface);border-bottom:1px solid var(--border);padding:14px 24px;display:flex;align-items:center;gap:12px;flex-shrink:0;">
+      <h2 style="font-family:var(--head);font-size:18px;font-weight:700;flex:1;letter-spacing:-0.3px;">✅ Action Board</h2>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted);" id="actions-topbar-info">AI-generated actions from all emails</span>
+      <button class="btn btn-secondary" onclick="loadActions()">↻ Refresh</button>
+      <button class="btn btn-secondary" style="border-color:var(--red);color:var(--red);" onclick="filterActions('critical')">🔴 Critical Only</button>
+      <button class="btn btn-secondary" onclick="filterActions('all')">Show All</button>
+    </div>
+
+    <div class="actions-layout">
+
+      <!-- Action stats -->
+      <div class="actions-stats">
+        <div class="stat-chip stat-emergency"><span class="stat-label">🔴 Critical Actions</span><span class="stat-value" id="act-critical">0</span></div>
+        <div class="stat-chip stat-high"><span class="stat-label">🟠 High Priority</span><span class="stat-value" id="act-high">0</span></div>
+        <div class="stat-chip stat-resolved"><span class="stat-label">✅ Completed</span><span class="stat-value" id="act-done">0</span></div>
+        <div class="stat-chip stat-avg"><span class="stat-label">📋 Total Open</span><span class="stat-value" id="act-total">0</span></div>
+      </div>
+
+      <!-- Actions grid -->
+      <div class="actions-grid" id="actions-grid">
+        <div class="empty-state"><div class="emoji">✅</div><p>No actions yet. Run python load_comms.py first.</p></div>
+      </div>
+
+    </div>
+
+  </div><!-- /#actionsView -->
+
 </main>
 
 <!-- Toast Container -->
@@ -733,11 +1275,26 @@
   let isListening = false;
   let categoryChart = null;
 
+  // Comms state
+  let allComms = [];
+  let allActions = [];
+  let allThreads = [];
+  let selectedEmailId = null;
+  let commsFilter = 'all';
+  let commsSearch = '';
+  let actionsFilter = 'all';
+  let commsAnalyticsData = null;
+  let commsStreamSource = null;
+
   // ── Init ────────────────────────────────────────────────────────────
   document.addEventListener('DOMContentLoaded', () => {
     loadRequests();
     loadAnalytics();
+    loadComms();
+    loadCommsAnalytics();
+    loadActions();
     setInterval(() => { loadRequests(); loadAnalytics(); }, 15000);
+    setInterval(() => { if (allComms.length > 0) { loadCommsAnalytics(); } }, 30000);
   });
 
   // ── Toast ───────────────────────────────────────────────────────────
@@ -750,10 +1307,35 @@
     setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateY(8px)'; el.style.transition = 'all 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
   }
 
-  // ── View ────────────────────────────────────────────────────────────
-  function showView(v) {
+  // ── View Switcher ───────────────────────────────────────────────────
+  function showView(v, navEl) {
     document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-    event.currentTarget.classList.add('active');
+    if (navEl) navEl.classList.add('active');
+
+    const dashboard = document.getElementById('dashboardView');
+    const commsView = document.getElementById('commsView');
+    const actionsView = document.getElementById('actionsView');
+    const origTopbar = document.getElementById('topbar');
+
+    dashboard.classList.remove('view-hidden');
+    commsView.classList.remove('view-active');
+    actionsView.classList.remove('view-active');
+
+    if (v === 'comms') {
+      dashboard.classList.add('view-hidden');
+      if (origTopbar) origTopbar.style.display = 'none';
+      commsView.classList.add('view-active');
+      loadComms();
+      loadCommsAnalytics();
+      ensureThreadsLoaded();
+    } else if (v === 'actions') {
+      dashboard.classList.add('view-hidden');
+      if (origTopbar) origTopbar.style.display = 'none';
+      actionsView.classList.add('view-active');
+      loadActions();
+    } else {
+      if (origTopbar) origTopbar.style.display = '';
+    }
   }
 
   function focusInput() {
@@ -1269,6 +1851,598 @@
     document.getElementById('voice-status').style.display = 'none';
     if (recognition) { try { recognition.stop(); } catch(e) {} recognition = null; }
   }
+
+  // ══════════════════════════════════════════════════════════════════
+  // COMMS INTELLIGENCE
+  // ══════════════════════════════════════════════════════════════════
+
+  // ── Load & Render Comms ─────────────────────────────────────────────
+  async function loadComms() {
+    try {
+      const res = await fetch('/api/comms');
+      if (!res.ok) return;
+      allComms = await res.json();
+      renderCommsList();
+      updateCommsBadge();
+    } catch(e) { console.error('loadComms', e); }
+  }
+
+  async function loadCommsAnalytics() {
+    try {
+      const res = await fetch('/api/comms/analytics');
+      if (!res.ok) return;
+      commsAnalyticsData = await res.json();
+      renderCommsStats(commsAnalyticsData);
+      renderWelfareBanner();
+      updateCommsBadge();
+    } catch(e) { console.error('loadCommsAnalytics', e); }
+  }
+
+  async function loadActions() {
+    try {
+      const res = await fetch('/api/comms/actions');
+      if (!res.ok) return;
+      allActions = await res.json();
+      renderActionsGrid();
+      updateActionsBadge();
+    } catch(e) { console.error('loadActions', e); }
+  }
+
+  function renderCommsStats(data) {
+    if (!data) return;
+    setText('cs-critical', data.critical || 0);
+    setText('cs-high', data.high || 0);
+    setText('cs-welfare', data.welfare_checks || 0);
+    setText('cs-legal', data.legal_exposure || 0);
+    setText('cs-total', data.total || 0);
+    setText('cs-open-actions', data.open_actions || 0);
+    const info = document.getElementById('comms-topbar-info');
+    if (info) info.textContent = `${data.total || 0} emails · ${data.unread || 0} unread · ${data.critical || 0} critical`;
+  }
+
+  function renderWelfareBanner() {
+    const banner = document.getElementById('welfare-banner');
+    if (!banner || !commsAnalyticsData) return;
+    if ((commsAnalyticsData.welfare_checks || 0) > 0) {
+      banner.style.display = 'block';
+      const we = allComms.find(c => c.welfare_check_needed === 1);
+      const txt = document.getElementById('welfare-banner-text');
+      if (we && txt) {
+        txt.textContent = `${we.from_name || 'Tenant'} (${we.from_unit || 'unknown unit'}) — ${we.subject || ''}`;
+      }
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  function updateCommsBadge() {
+    const badge = document.getElementById('nav-badge-comms');
+    if (!badge) return;
+    const critical = allComms.filter(c => c.urgency === 'critical').length;
+    if (critical > 0) {
+      badge.textContent = critical;
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function updateActionsBadge() {
+    const badge = document.getElementById('nav-badge-actions');
+    if (!badge) return;
+    const open = allActions.filter(a => a.status === 'open').length;
+    if (open > 0) {
+      badge.textContent = open;
+      badge.style.display = 'inline';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  // ── Filter & Render Email List ──────────────────────────────────────
+  function setCommsFilter(f, btn) {
+    commsFilter = f;
+    document.querySelectorAll('.comms-filter-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderCommsList();
+  }
+
+  function filterComms() {
+    commsSearch = document.getElementById('comms-search').value.toLowerCase();
+    renderCommsList();
+  }
+
+  function filterByFlag(flag) {
+    commsFilter = flag;
+    document.querySelectorAll('.comms-filter-btn').forEach(b => b.classList.remove('active'));
+    renderCommsList();
+    // Switch to comms view if not already
+    const commsView = document.getElementById('commsView');
+    if (!commsView.classList.contains('view-active')) {
+      showView('comms', document.querySelector('.nav-item[onclick*="comms"]'));
+    }
+  }
+
+  function getFilteredComms() {
+    let list = allComms;
+    if (commsFilter === 'critical') list = list.filter(c => c.urgency === 'critical');
+    else if (commsFilter === 'high') list = list.filter(c => c.urgency === 'high');
+    else if (commsFilter === 'unread') list = list.filter(c => !c.read);
+    else if (commsFilter === 'welfare_check_needed') list = list.filter(c => c.welfare_check_needed === 1);
+    if (commsSearch) list = list.filter(c =>
+      (c.subject || '').toLowerCase().includes(commsSearch) ||
+      (c.from_name || '').toLowerCase().includes(commsSearch) ||
+      (c.body || '').toLowerCase().includes(commsSearch) ||
+      (c.ai_summary || '').toLowerCase().includes(commsSearch) ||
+      (c.from_unit || '').toLowerCase().includes(commsSearch)
+    );
+    return list;
+  }
+
+  function renderCommsList() {
+    const container = document.getElementById('comms-list');
+    if (!container) return;
+    const list = getFilteredComms();
+
+    if (allComms.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="emoji">📭</div><p>No emails loaded.</p><p style="font-size:11px;font-family:var(--mono);margin-top:6px;">Run: python load_comms.py</p></div>`;
+      return;
+    }
+    if (list.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="emoji">🔍</div><p>No emails match this filter.</p></div>`;
+      return;
+    }
+
+    const flagIcons = {
+      welfare_check_needed: '🚨',
+      legal_exposure: '⚖️',
+      media_risk: '📺',
+      vulnerable_tenant: '👶',
+      recurring_issue: '🔁',
+      financial_risk: '💰',
+      deadline_imminent: '⏰',
+    };
+
+    container.innerHTML = list.map(c => {
+      const flags = parseJson(c.flags || '[]');
+      const flagHtml = flags.slice(0,3).map(f => `<span class="ec-flag" title="${f}">${flagIcons[f] || '🔖'}</span>`).join('');
+      const urgency = c.urgency || 'info';
+      const score = c.urgency_score || 0;
+      const typeClass = 'type-' + (c.from_type || 'system');
+      const preview = (c.body || '').replace(/\n/g,' ').slice(0, 80);
+      const time = formatTime(c.timestamp);
+      const unreadDot = !c.read ? '<span class="ec-unread"></span>' : '';
+      const selected = c.email_id === selectedEmailId ? ' selected' : '';
+      return `
+        <div class="email-card urgency-${urgency}${selected}" onclick="selectEmail('${c.email_id}')">
+          <div class="ec-top">
+            <span class="ec-score score-${urgency}">${score}</span>
+            <span class="ec-sender">${escHtml(c.from_name || 'Unknown')}</span>
+            <span class="ec-type-badge ${typeClass}">${c.from_type || '?'}</span>
+            ${unreadDot}
+          </div>
+          <div class="ec-subject ${!c.read ? 'unread' : ''}">${escHtml(c.subject || 'No subject')}</div>
+          <div class="ec-preview">${escHtml(preview)}</div>
+          <div class="ec-bottom">
+            ${flagHtml}
+            ${c.from_unit ? `<span class="ec-unit">${escHtml(c.from_unit)}</span>` : ''}
+            <span class="ec-time">${time}</span>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ── Select & Display Email ──────────────────────────────────────────
+  async function selectEmail(emailId) {
+    selectedEmailId = emailId;
+    renderCommsList(); // update selected highlight
+
+    const comm = allComms.find(c => c.email_id === emailId);
+    if (!comm) return;
+
+    // Hide empty state, show content
+    const empty = document.getElementById('cd-empty');
+    const content = document.getElementById('cd-content');
+    if (empty) empty.style.display = 'none';
+    if (content) { content.style.display = 'flex'; content.style.flexDirection = 'column'; content.style.overflow = 'hidden'; content.style.minHeight = '0'; content.style.flex = '1'; }
+
+    // Reset stream/reply panels
+    hideEl('cd-stream-box');
+    removeClass('cd-stream-box', 'streaming');
+    hideEl('cd-reply-wrap');
+    if (commsStreamSource) { commsStreamSource.close(); commsStreamSource = null; }
+
+    // Subject + urgency badge
+    setText('cd-subject', comm.subject || 'No subject');
+    const ubEl = document.getElementById('cd-urgency-badge');
+    if (ubEl) {
+      const u = comm.urgency || 'info';
+      const score = comm.urgency_score || 0;
+      ubEl.textContent = `${urgencyIcon(u)} ${u.toUpperCase()} · ${score}`;
+      ubEl.className = `cd-urgency-badge ub-${u}`;
+    }
+
+    // Meta chips
+    const meta = document.getElementById('cd-meta');
+    if (meta) {
+      const parts = [];
+      if (comm.from_unit) parts.push(`<span class="cd-meta-chip">🏠 ${escHtml(comm.from_unit)}</span>`);
+      if (comm.from_property_id) parts.push(`<span class="cd-meta-chip">${escHtml(comm.from_property_id)}</span>`);
+      if (comm.category) parts.push(`<span class="cd-meta-chip">${escHtml(comm.category)}</span>`);
+      if (comm.sentiment) parts.push(`<span class="cd-meta-chip">😶 ${escHtml(comm.sentiment)}</span>`);
+      if (comm.action_owner) parts.push(`<span class="cd-meta-chip">→ ${escHtml(comm.action_owner)}</span>`);
+      meta.innerHTML = parts.join('');
+    }
+
+    // AI Summary
+    if (comm.ai_summary) {
+      showEl('cd-ai-summary');
+      setText('cd-ai-text', comm.ai_summary);
+    } else {
+      hideEl('cd-ai-summary');
+    }
+
+    // Flags
+    const flagsEl = document.getElementById('cd-flags');
+    const flags = parseJson(comm.flags || '[]');
+    if (flagsEl) {
+      if (flags.length > 0) {
+        const flagLabels = {
+          welfare_check_needed: '🚨 Welfare Check',
+          legal_exposure: '⚖️ Legal Exposure',
+          media_risk: '📺 Media Risk',
+          vulnerable_tenant: '👶 Vulnerable Tenant',
+          recurring_issue: '🔁 Recurring Issue',
+          financial_risk: '💰 Financial Risk',
+          deadline_imminent: '⏰ Deadline Imminent',
+        };
+        flagsEl.innerHTML = flags.map(f => `<span class="cd-flag-chip flag-${f.split('_')[0]}">${flagLabels[f] || f}</span>`).join('');
+        flagsEl.style.display = 'flex';
+      } else {
+        flagsEl.style.display = 'none';
+      }
+    }
+
+    // Recommended Action
+    if (comm.recommended_action) {
+      showEl('cd-rec-action');
+      setText('cd-rec-text', comm.recommended_action);
+      const dl = document.getElementById('cd-deadline');
+      if (dl) dl.textContent = comm.action_deadline ? `⏱ ${comm.action_deadline}` : '';
+    } else {
+      hideEl('cd-rec-action');
+    }
+
+    // Email from + body
+    const fromEl = document.getElementById('cd-from');
+    if (fromEl) fromEl.innerHTML = `<strong>${escHtml(comm.from_name || 'Unknown')}</strong> &lt;${escHtml(comm.from_email || '')}&gt; · <span>${formatTime(comm.timestamp)}</span>`;
+    setText('cd-email-body', comm.body || '');
+
+    // Thread panel
+    await loadThreadForEmail(comm);
+  }
+
+  async function loadThreadForEmail(comm) {
+    const panel = document.getElementById('cd-thread-panel');
+    if (!panel) return;
+    try {
+      const res = await fetch(`/api/comms/thread/${comm.thread_id}`);
+      if (!res.ok) { panel.classList.remove('visible'); return; }
+      const emails = await res.json();
+      if (emails.length <= 1) { panel.classList.remove('visible'); return; }
+
+      // Find thread data
+      const thread = allThreads.find(t => t.thread_id === comm.thread_id);
+      if (thread && thread.thread_summary) {
+        setText('cdt-summary', thread.thread_summary);
+        const statusEl = document.getElementById('cdt-status');
+        const status = thread.thread_status || 'Open';
+        if (statusEl) {
+          statusEl.textContent = status;
+          statusEl.className = `cdt-status-badge status-${status.replace(' ', '.')}`;
+        }
+        const escEl = document.getElementById('cdt-escalation');
+        if (escEl) {
+          const risk = thread.escalation_risk || 'low';
+          const riskColors = { low: 'var(--green)', medium: 'var(--accent4)', high: 'var(--red)' };
+          escEl.innerHTML = `Escalation: <span style="color:${riskColors[risk]}">${risk}</span>${thread.escalation_reason ? ` — ${thread.escalation_reason}` : ''}`;
+        }
+        panel.classList.add('visible');
+      } else {
+        setText('cdt-summary', `${emails.length} emails in this thread`);
+        panel.classList.add('visible');
+      }
+    } catch(e) { panel.classList.remove('visible'); }
+  }
+
+  // ── Load threads ────────────────────────────────────────────────────
+  async function ensureThreadsLoaded() {
+    if (allThreads.length === 0) {
+      try {
+        const res = await fetch('/api/comms/threads');
+        if (res.ok) allThreads = await res.json();
+      } catch(e) {}
+    }
+  }
+
+  // ── Stream Live Analysis ────────────────────────────────────────────
+  function streamCommsAnalysis() {
+    if (!selectedEmailId) { toast('Select an email first', 'error'); return; }
+    if (commsStreamSource) { commsStreamSource.close(); commsStreamSource = null; }
+
+    const box = document.getElementById('cd-stream-box');
+    if (!box) return;
+    box.textContent = '';
+    box.style.display = 'block';
+    box.classList.add('streaming', 'visible');
+    showEl('cd-spinner');
+    hideEl('cd-reply-wrap');
+
+    commsStreamSource = new EventSource(`/api/comms/${selectedEmailId}/stream-analysis`);
+    commsStreamSource.onmessage = (evt) => {
+      const data = JSON.parse(evt.data);
+      if (data.token) {
+        box.textContent += data.token;
+        box.scrollTop = box.scrollHeight;
+      }
+      if (data.done || data.error) {
+        commsStreamSource.close();
+        commsStreamSource = null;
+        box.classList.remove('streaming');
+        hideEl('cd-spinner');
+        if (data.error) toast('Analysis error: ' + data.error, 'error');
+      }
+    };
+    commsStreamSource.onerror = () => {
+      commsStreamSource && commsStreamSource.close();
+      commsStreamSource = null;
+      box.classList.remove('streaming');
+      hideEl('cd-spinner');
+    };
+  }
+
+  // ── Draft Reply ─────────────────────────────────────────────────────
+  async function draftCommsReply() {
+    if (!selectedEmailId) { toast('Select an email first', 'error'); return; }
+    showEl('cd-spinner');
+    const replyWrap = document.getElementById('cd-reply-wrap');
+    const replyBox = document.getElementById('cd-reply-box');
+    if (replyWrap) replyWrap.style.display = 'block';
+    if (replyBox) { replyBox.textContent = '⏳ Drafting reply...'; replyBox.classList.remove('loaded'); }
+    hideEl('cd-stream-box');
+
+    try {
+      const res = await fetch(`/api/comms/${selectedEmailId}/reply`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok) {
+        if (replyBox) { replyBox.textContent = data.reply; replyBox.classList.add('loaded'); }
+        toast('Reply drafted ✅', 'success');
+      } else {
+        if (replyBox) replyBox.textContent = data.error || 'Error';
+        toast('Error: ' + (data.error || 'Failed'), 'error');
+      }
+    } catch(e) {
+      if (replyBox) replyBox.textContent = 'Error: ' + e.message;
+      toast('Network error', 'error');
+    }
+    hideEl('cd-spinner');
+  }
+
+  async function viewThread() {
+    if (!selectedEmailId) { toast('Select an email first', 'error'); return; }
+    const comm = allComms.find(c => c.email_id === selectedEmailId);
+    if (!comm) return;
+    const res = await fetch(`/api/comms/thread/${comm.thread_id}`);
+    if (!res.ok) { toast('Thread not found', 'error'); return; }
+    const emails = await res.json();
+    if (emails.length <= 1) { toast('This email has no thread (single email)', 'info'); return; }
+
+    // Show thread emails in a toast-like overlay (simple modal)
+    let html = `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:center;justify-content:center;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:640px;max-height:80vh;overflow-y:auto;padding:20px;" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-family:var(--head);font-size:15px;font-weight:800;">🧵 Thread — ${escHtml(comm.subject || '')}</span>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">✕</button>
+        </div>`;
+
+    // Thread AI analysis if available
+    const thread = allThreads.find(t => t.thread_id === comm.thread_id);
+    if (thread && thread.thread_summary) {
+      html += `<div style="background:rgba(0,217,163,0.05);border:1px solid rgba(0,217,163,0.2);border-radius:8px;padding:12px;margin-bottom:14px;">
+        <div style="font-family:var(--mono);font-size:10px;color:var(--accent);text-transform:uppercase;margin-bottom:5px;">🤖 AI Thread Analysis</div>
+        <p style="font-size:12px;color:var(--text);line-height:1.6;">${escHtml(thread.thread_summary)}</p>
+        <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+          <span style="font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:2px 7px;border-radius:4px;">${escHtml(thread.thread_status || 'Open')}</span>
+          ${thread.recommended_action ? `<span style="font-family:var(--mono);font-size:10px;color:var(--accent2);">→ ${escHtml(thread.recommended_action)}</span>` : ''}
+        </div>
+      </div>`;
+    }
+
+    html += emails.map((e, i) => {
+      const u = e.urgency || 'info';
+      return `<div style="border:1px solid var(--border);border-left:3px solid ${urgencyColor(u)};border-radius:8px;padding:12px;margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <span style="font-family:var(--mono);font-size:11px;color:${urgencyColor(u)};font-weight:700;">#${i+1}</span>
+          <strong style="font-size:12px;">${escHtml(e.from_name || 'Unknown')}</strong>
+          <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${formatTime(e.timestamp)}</span>
+          ${e.urgency ? `<span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:${urgencyColor(u)};">${u} · ${e.urgency_score || 0}</span>` : ''}
+        </div>
+        ${e.ai_summary ? `<p style="font-size:12px;color:var(--accent);margin-bottom:8px;line-height:1.5;"><em>${escHtml(e.ai_summary)}</em></p>` : ''}
+        <p style="font-size:12px;color:var(--text);line-height:1.6;white-space:pre-wrap;">${escHtml((e.body || '').slice(0, 400))}${(e.body||'').length > 400 ? '...' : ''}</p>
+      </div>`;
+    }).join('');
+    html += `</div></div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+    await ensureThreadsLoaded();
+  }
+
+  // ── Show Threads Modal ──────────────────────────────────────────────
+  async function showThreadsModal() {
+    await ensureThreadsLoaded();
+    const res = await fetch('/api/comms/threads');
+    if (!res.ok) { toast('No threads data', 'error'); return; }
+    const threads = await res.json();
+    const multiThreads = threads.filter(t => t.email_count > 1).slice(0, 20);
+
+    let html = `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9998;display:flex;align-items:center;justify-content:center;" onclick="this.remove()">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;width:680px;max-height:80vh;overflow-y:auto;padding:20px;" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+          <span style="font-family:var(--head);font-size:15px;font-weight:800;">🧵 Multi-Email Threads (${multiThreads.length})</span>
+          <button onclick="this.closest('[style*=fixed]').remove()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;">✕</button>
+        </div>`;
+
+    if (multiThreads.length === 0) {
+      html += `<div class="empty-state"><p>No multi-email threads found. Load emails first.</p></div>`;
+    } else {
+      html += multiThreads.map(t => {
+        const u = t.thread_urgency || 'low';
+        const risk = t.escalation_risk || 'low';
+        const riskColors = { low: 'var(--green)', medium: 'var(--accent4)', high: 'var(--red)' };
+        return `<div style="border:1px solid var(--border);border-left:3px solid ${urgencyColor(u)};border-radius:8px;padding:12px;margin-bottom:10px;cursor:pointer;" onclick="filterToThread('${t.thread_id}');this.closest('[style*=fixed]').remove()">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-family:var(--mono);font-size:12px;font-weight:700;color:${urgencyColor(u)};">${t.thread_urgency_score || 0}</span>
+            <strong style="font-size:12px;flex:1;">${escHtml(t.subject || 'No subject')}</strong>
+            <span style="font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">${t.email_count} emails</span>
+          </div>
+          ${t.thread_summary ? `<p style="font-size:11px;color:var(--text);line-height:1.5;margin-bottom:6px;">${escHtml(t.thread_summary.slice(0,150))}...</p>` : ''}
+          <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+            <span style="font-family:var(--mono);font-size:10px;background:var(--surface2);border:1px solid var(--border);padding:2px 6px;border-radius:4px;">${escHtml(t.thread_status || 'Open')}</span>
+            <span style="font-family:var(--mono);font-size:10px;color:${riskColors[risk]};">Escalation: ${risk}</span>
+            ${t.recommended_action ? `<span style="font-size:11px;color:var(--accent2);font-family:var(--mono);">→ ${escHtml(t.recommended_action.slice(0,60))}</span>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+    html += `</div></div>`;
+    document.body.insertAdjacentHTML('beforeend', html);
+  }
+
+  function filterToThread(threadId) {
+    // Filter email list to show emails from a specific thread
+    commsFilter = 'all';
+    commsSearch = '';
+    document.getElementById('comms-search').value = '';
+    // Temporarily filter to thread
+    const emails = allComms.filter(c => c.thread_id === threadId);
+    if (emails.length > 0) {
+      selectEmail(emails[0].email_id);
+    }
+  }
+
+  // ── Copy helpers ────────────────────────────────────────────────────
+  function copyEmailBody() {
+    const comm = allComms.find(c => c.email_id === selectedEmailId);
+    if (!comm) return;
+    navigator.clipboard.writeText(comm.body || '').then(() => toast('Email body copied 📋', 'success'));
+  }
+
+  function copyCommsReply() {
+    const box = document.getElementById('cd-reply-box');
+    if (!box || !box.classList.contains('loaded')) { toast('Generate a reply first', 'error'); return; }
+    navigator.clipboard.writeText(box.textContent).then(() => toast('Reply copied 📋', 'success'));
+  }
+
+  // ── Actions Board ───────────────────────────────────────────────────
+  function filterActions(f) {
+    actionsFilter = f;
+    renderActionsGrid();
+  }
+
+  function renderActionsGrid() {
+    const grid = document.getElementById('actions-grid');
+    if (!grid) return;
+
+    let list = allActions;
+    if (actionsFilter === 'critical') list = list.filter(a => a.urgency === 'critical');
+
+    const open = list.filter(a => a.status === 'open');
+    const done = list.filter(a => a.status === 'done');
+    const criticalOpen = list.filter(a => a.status === 'open' && a.urgency === 'critical').length;
+    const highOpen = list.filter(a => a.status === 'open' && a.urgency === 'high').length;
+
+    setText('act-critical', criticalOpen);
+    setText('act-high', highOpen);
+    setText('act-done', done.length);
+    setText('act-total', open.length);
+
+    // Update badge
+    updateActionsBadge();
+
+    if (list.length === 0) {
+      grid.innerHTML = `<div class="empty-state"><div class="emoji">✅</div><p>No actions yet. Run python load_comms.py</p></div>`;
+      return;
+    }
+
+    // Sort: open first, then by urgency_score desc, then done
+    const sorted = [...open, ...done].sort((a, b) => {
+      if (a.status !== b.status) return a.status === 'open' ? -1 : 1;
+      return (b.urgency_score || 0) - (a.urgency_score || 0);
+    });
+
+    const scoreColors = { critical: 'var(--red)', high: 'var(--accent4)', medium: 'var(--accent2)', low: 'var(--green)' };
+
+    grid.innerHTML = sorted.map(a => {
+      const isDone = a.status === 'done';
+      const u = a.urgency || 'medium';
+      const score = a.urgency_score || 0;
+      return `<div class="action-card urgency-${u}${isDone ? ' done' : ''}" id="ac-${a.id}">
+        <div class="ac-top">
+          <span class="ac-score" style="color:${scoreColors[u] || 'var(--muted)'};">${score}</span>
+          <span class="ac-title">${escHtml(a.title || 'Action')}</span>
+        </div>
+        ${a.description ? `<div class="ac-desc">${escHtml(a.description)}</div>` : ''}
+        <div class="ac-bottom">
+          ${a.action_owner ? `<span class="ac-owner">${escHtml(a.action_owner)}</span>` : ''}
+          ${a.deadline ? `<span class="ac-deadline">⏱ ${escHtml(a.deadline)}</span>` : ''}
+          ${a.from_unit ? `<span class="ac-unit">🏠 ${escHtml(a.from_unit)}</span>` : ''}
+          <button class="ac-done-btn" onclick="toggleAction(${a.id}, '${isDone ? 'open' : 'done'}')">
+            ${isDone ? '↩ Reopen' : '✓ Done'}
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  async function toggleAction(id, newStatus) {
+    try {
+      const res = await fetch(`/api/comms/actions/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        const idx = allActions.findIndex(a => a.id === id);
+        if (idx !== -1) allActions[idx] = updated;
+        renderActionsGrid();
+        toast(newStatus === 'done' ? '✅ Action completed' : '↩ Action reopened', 'success');
+      }
+    } catch(e) { toast('Error', 'error'); }
+  }
+
+  // ── Utility helpers ─────────────────────────────────────────────────
+  function urgencyIcon(u) {
+    return { critical: '🔴', high: '🟠', medium: '🟡', low: '🟢', info: '⚪' }[u] || '⚪';
+  }
+  function urgencyColor(u) {
+    return { critical: 'var(--red)', high: 'var(--accent4)', medium: 'var(--accent2)', low: 'var(--green)', info: 'var(--border)' }[u] || 'var(--border)';
+  }
+  function formatTime(ts) {
+    if (!ts) return '';
+    try {
+      const d = new Date(ts);
+      const now = new Date();
+      if (d.toDateString() === now.toDateString()) return d.toTimeString().slice(0, 5);
+      return d.toLocaleDateString('en-IE', { day: 'numeric', month: 'short' });
+    } catch(e) { return ts.slice(0, 10); }
+  }
+  function parseJson(s) { try { return JSON.parse(s); } catch(e) { return []; } }
+  function escHtml(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function setText(id, v) { const el = document.getElementById(id); if (el) el.textContent = v; }
+  function showEl(id) { const el = document.getElementById(id); if (el) el.style.display = ''; }
+  function hideEl(id) { const el = document.getElementById(id); if (el) el.style.display = 'none'; }
+  function addClass(id, cls) { const el = document.getElementById(id); if (el) el.classList.add(cls); }
+  function removeClass(id, cls) { const el = document.getElementById(id); if (el) el.classList.remove(cls); }
 
 </script>
 </body>

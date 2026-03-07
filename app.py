@@ -13,12 +13,14 @@ from flask import Flask, Response, jsonify, render_template, request, stream_wit
 
 import autopilot
 import database
+import comms_engine
 from ai_engine import generate_reply, stream_triage, triage_request
 
 app = Flask(__name__)
 
 # Initialise DB on startup
 database.init_db()
+database.init_comms_tables()
 
 
 # ─── Demo simulator messages ────────────────────────────────────────────────────
@@ -53,6 +55,12 @@ def tenant_portal():
 @app.route("/manager")
 def manager_dashboard():
     """Property manager operations dashboard."""
+    return render_template("index.html")
+
+
+@app.route("/manager-legacy")
+def manager_legacy():
+    """Legacy manager dashboard (backup)."""
     return render_template("manager.html")
 
 
@@ -253,6 +261,139 @@ def api_simulate():
         apartment_ref=apt,
     )
     return jsonify(record), 201
+
+
+# ─── Comms Intelligence Routes ──────────────────────────────────────────────────
+
+@app.route("/api/comms")
+def api_get_comms():
+    """Return all communications sorted by urgency score."""
+    comms = database.get_all_communications()
+    return jsonify(comms), 200
+
+
+@app.route("/api/comms/threads")
+def api_get_comms_threads():
+    """Return all threads sorted by urgency score."""
+    threads = database.get_all_threads()
+    return jsonify(threads), 200
+
+
+@app.route("/api/comms/analytics")
+def api_get_comms_analytics():
+    """Aggregated comms stats."""
+    return jsonify(database.get_comms_analytics()), 200
+
+
+@app.route("/api/comms/actions")
+def api_get_comms_actions():
+    """Return all action items sorted by urgency."""
+    return jsonify(database.get_all_action_items()), 200
+
+
+@app.route("/api/comms/actions/<int:action_id>/status", methods=["PATCH"])
+def api_update_action_status(action_id):
+    """Update an action item status (open / done / snoozed)."""
+    data = request.get_json(force=True, silent=True) or {}
+    status = (data.get("status") or "").strip()
+    if status not in {"open", "done", "snoozed"}:
+        return jsonify({"error": "status must be open, done, or snoozed"}), 400
+    item = database.update_action_item_status(action_id, status)
+    if not item:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify(item), 200
+
+
+@app.route("/api/comms/<string:email_id>/reply", methods=["POST"])
+def api_comms_reply(email_id):
+    """Generate an AI draft reply for an email."""
+    comm = database.get_communication_by_email_id(email_id)
+    if not comm:
+        return jsonify({"error": "Not found"}), 404
+
+    import json as _json
+    flags = _json.loads(comm.get("flags") or "[]")
+    analysis = {
+        "urgency": comm.get("urgency"),
+        "urgency_score": comm.get("urgency_score", 0),
+        "ai_summary": comm.get("ai_summary"),
+        "recommended_action": comm.get("recommended_action"),
+        "flags": flags,
+    }
+    email_data = {
+        "subject": comm.get("subject"),
+        "body": comm.get("body"),
+        "from": {
+            "name": comm.get("from_name"),
+            "email": comm.get("from_email"),
+            "type": comm.get("from_type"),
+            "unit": comm.get("from_unit"),
+            "property_id": comm.get("from_property_id"),
+        }
+    }
+    try:
+        reply = comms_engine.draft_reply(email_data, analysis)
+    except Exception as e:
+        return jsonify({"error": f"AI error: {str(e)}"}), 500
+
+    return jsonify({"reply": reply}), 200
+
+
+@app.route("/api/comms/<string:email_id>/stream-analysis")
+def api_comms_stream_analysis(email_id):
+    """SSE endpoint — streams live AI analysis of a single email."""
+    comm = database.get_communication_by_email_id(email_id)
+    if not comm:
+        return jsonify({"error": "Not found"}), 404
+
+    email_data = {
+        "id": comm.get("email_id"),
+        "subject": comm.get("subject"),
+        "body": comm.get("body"),
+        "timestamp": comm.get("timestamp"),
+        "from": {
+            "name": comm.get("from_name"),
+            "email": comm.get("from_email"),
+            "type": comm.get("from_type"),
+            "unit": comm.get("from_unit"),
+            "property_id": comm.get("from_property_id"),
+        }
+    }
+
+    def generate():
+        try:
+            for token in comms_engine.stream_analysis(email_data):
+                yield f"data: {json.dumps({'token': token})}\n\n"
+            yield f"data: {json.dumps({'done': True})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@app.route("/api/comms/priority-board")
+def api_comms_priority_board():
+    """Return top 10 critical/high emails plus all open actions."""
+    all_comms = database.get_all_communications()
+    priority = [c for c in all_comms if c.get("urgency") in ("critical", "high")][:10]
+    actions = database.get_all_action_items()
+    analytics = database.get_comms_analytics()
+    return jsonify({
+        "priority_emails": priority,
+        "open_actions": [a for a in actions if a.get("status") == "open"],
+        "analytics": analytics,
+    }), 200
+
+
+@app.route("/api/comms/thread/<string:thread_id>")
+def api_get_thread_emails(thread_id):
+    """Return all emails in a specific thread."""
+    emails = database.get_thread_emails(thread_id)
+    return jsonify(emails), 200
 
 
 # ─── Entry point ────────────────────────────────────────────────────────────────
