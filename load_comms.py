@@ -38,9 +38,9 @@ def load_json():
 
 def process_emails(emails):
     """
-    Step 1: Save all emails to DB.
-    Step 2: Run AI analysis on each email.
-    Step 3: Generate action items for high-priority emails.
+    Step 1: Save all emails to DB (skips existing).
+    Step 2: Run AI analysis on each email (skips already-analysed).
+    Step 3: Generate action items for high-priority emails (skips existing).
     """
     database.init_comms_tables()
     print(f"✅ Database tables ready")
@@ -50,25 +50,40 @@ def process_emails(emails):
     print("=" * 60)
     print("STEP 1/3 — Saving emails to database")
     print("=" * 60)
+    new_count = 0
     for i, email in enumerate(emails, 1):
-        database.save_communication(email)
+        existing = database.get_communication_by_email_id(email.get("id", ""))
+        if not existing:
+            database.save_communication(email)
+            new_count += 1
         if i % 10 == 0:
-            print(f"  Saved {i}/{len(emails)} emails...")
-    print(f"✅ All {len(emails)} emails saved to DB\n")
+            print(f"  Checked {i}/{len(emails)} emails ({new_count} new)...")
+    print(f"✅ Step 1 done — {new_count} new emails saved ({len(emails) - new_count} already in DB)\n")
 
     # ── Step 2: AI analysis ──────────────────────────────────────────────
     print("=" * 60)
-    print("STEP 2/3 — Running AI analysis on each email (~6 mins)")
+    print("STEP 2/3 — Running AI analysis on each email")
     print("=" * 60)
 
     critical_emails = []
     errors = []
+    skipped = 0
 
     for i, email in enumerate(emails, 1):
         email_id = email.get("id", f"email_{i:03d}")
         subject = email.get("subject", "")[:55]
         frm = email.get("from", {})
         sender_type = frm.get("type", "unknown")
+
+        # ── RESUME: skip already-analysed emails ────────────────────────
+        existing = database.get_communication_by_email_id(email_id)
+        if existing and existing.get("urgency") is not None:
+            urgency = existing.get("urgency", "info")
+            if urgency in ("critical", "high"):
+                critical_emails.append((email, existing))
+            skipped += 1
+            print(f"  [{i:3d}/{len(emails)}] {email_id} — SKIP (already {urgency.upper()})")
+            continue
 
         print(f"  [{i:3d}/{len(emails)}] {email_id} — {subject[:40]}...")
 
@@ -104,17 +119,32 @@ def process_emails(emails):
             errors.append((email_id, str(e)))
             time.sleep(2.0)  # Extra pause on error
 
-    print(f"\n✅ AI analysis complete. {len(critical_emails)} critical/high emails. {len(errors)} errors.\n")
+    newly_analysed = len(emails) - skipped - len(errors)
+    print(f"\n✅ AI analysis done — {newly_analysed} new, {skipped} skipped, {len(errors)} errors. "
+          f"{len(critical_emails)} critical/high total.\n")
 
     # ── Step 3: Action items ─────────────────────────────────────────────
     print("=" * 60)
     print("STEP 3/3 — Generating action items for priority emails")
     print("=" * 60)
 
+    # Build set of email_ids that already have action items
+    existing_actions = database.get_all_action_items()
+    emails_with_actions = {a["email_id"] for a in existing_actions if a.get("email_id")}
+    print(f"  {len(emails_with_actions)} emails already have action items — will skip those\n")
+
     action_count = 0
+    skipped_actions = 0
     for email, analysis in critical_emails:
         email_id = email.get("id")
         frm = email.get("from", {})
+
+        # ── RESUME: skip if action items already exist for this email ────
+        if email_id in emails_with_actions:
+            print(f"  SKIP {email_id} (action items already exist)")
+            skipped_actions += 1
+            continue
+
         print(f"  Generating actions for {email_id}...")
         try:
             items = comms_engine.generate_action_items(email, analysis)
@@ -130,15 +160,21 @@ def process_emails(emails):
             print(f"  ❌ Action item error for {email_id}: {e}")
             time.sleep(2.0)
 
-    print(f"✅ {action_count} action items generated\n")
+    print(f"✅ {action_count} new action items generated ({skipped_actions} already existed)\n")
     return critical_emails, errors
 
 
 def process_threads(emails):
-    """Group emails by thread_id, run thread analysis on multi-email threads."""
+    """Group emails by thread_id, run thread analysis on multi-email threads.
+    Skips threads that already have a full analysis saved."""
     print("=" * 60)
     print("STEP 4/4 — Thread analysis")
     print("=" * 60)
+
+    # Build set of thread_ids already fully analysed (have thread_summary set)
+    existing_threads = database.get_all_threads()
+    analysed_thread_ids = {t["thread_id"] for t in existing_threads if t.get("thread_summary")}
+    print(f"  {len(analysed_thread_ids)} threads already analysed — will skip those\n")
 
     # Group by thread
     thread_map = defaultdict(list)
@@ -162,6 +198,11 @@ def process_threads(emails):
         last_email_at = max((e.get("timestamp", "") for e in thread_emails), default="")
 
         if len(thread_emails_sorted) > 1:
+            # ── RESUME: skip if already analysed ────────────────────────
+            if thread_id in analysed_thread_ids:
+                print(f"  SKIP 🧵 {thread_id} (already analysed)")
+                continue
+
             # Run thread-level AI analysis
             print(f"  🧵 Thread {thread_id} ({len(thread_emails_sorted)} emails): {subject[:40]}...")
             try:
@@ -203,14 +244,15 @@ def process_threads(emails):
                 time.sleep(2.0)
         else:
             # Single-email thread — save basic info without separate AI call
-            database.save_thread({
-                "thread_id": thread_id,
-                "subject": subject,
-                "property_id": property_id,
-                "email_count": 1,
-                "participants": participants,
-                "last_email_at": last_email_at,
-            })
+            if thread_id not in {t["thread_id"] for t in existing_threads}:
+                database.save_thread({
+                    "thread_id": thread_id,
+                    "subject": subject,
+                    "property_id": property_id,
+                    "email_count": 1,
+                    "participants": participants,
+                    "last_email_at": last_email_at,
+                })
 
     print(f"✅ {thread_count} multi-email threads fully analysed\n")
 
