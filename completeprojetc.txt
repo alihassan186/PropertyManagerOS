@@ -1,0 +1,482 @@
+GIVE(A)GO HIRING HACKATHON  ·  MARCH 7, 2025  ·  BASELINE DUBLIN
+GITHUB COPILOT BUILD SPECIFICATION
+PropertyOS
+Complete Technical Specification — Every file, every function, every prompt
+🏠  Lette
+🏨  Otel
+💼  Kota
+
+
+AI Model
+llama-3.3-70b-versatile via Groq API (FREE — no credit card)
+Stack
+Python Flask + SQLite + Groq + Vanilla HTML/CSS/JS
+Star Feature
+AutoPilot Mode — autonomous AI agent clears the entire queue
+Voice Input
+Web Speech API (free, built into Chrome) — speak requests live
+Simulator
+One-click live request simulator for demo effect
+Cost
+€0 — completely free stack
+Runs on
+python app.py → http://localhost:5000
+
+01
+AI Model Selection
+The most important decision — use this exact model
+
+USE THIS MODEL:  llama-3.3-70b-versatile  (Groq API)
+
+Model name
+llama-3.3-70b-versatile
+Provider
+Groq (console.groq.com)
+Cost
+FREE — no credit card, no trial limits
+Speed
+~500 tokens/second (10x faster than OpenAI)
+Why not GPT-4
+Requires paid API key — you have €0 budget
+Why not Claude
+Requires paid API key
+Why not Ollama
+Requires powerful local GPU you won't have
+Why Groq
+Only free option that is fast enough for live streaming demo
+
+Getting Your Free Groq API Key (5 minutes tonight)
+    1. Go to console.groq.com in your browser
+    2. Click Sign Up — use your Google account (fastest)
+    3. Click "API Keys" in the left sidebar
+    4. Click "Create API Key" — name it "propertyos"
+    5. Copy the key (starts with gsk_) — only shown once
+    6. Paste it into your .env file: GROQ_API_KEY=gsk_xxxx
+
+02
+Project Structure
+Every file you need to create
+
+propertyos/
+├── app.py              ← Flask app, all routes
+├── database.py         ← SQLite, all DB functions
+├── ai_engine.py        ← All Groq API calls + prompts
+├── autopilot.py        ← AutoPilot autonomous agent
+├── requirements.txt    ← Python dependencies
+├── .env                ← Your API key (never commit)
+├── .env.example        ← Template (commit this)
+├── .gitignore
+├── seed_data.py        ← Demo data loader
+└── templates/
+    └── index.html      ← Entire frontend (HTML+CSS+JS)
+
+File
+What GitHub Copilot must build inside it
+app.py
+Flask app entry point. Registers all 10 routes. Calls database.py, ai_engine.py, autopilot.py. Starts on port 5000 with threading=True.
+database.py
+All SQLite logic: init_db(), create_request(), get_all_requests(), get_request_by_id(), update_status(), update_reply(), get_analytics(), delete_all_requests(). Zero SQL outside this file.
+ai_engine.py
+3 Groq functions: triage_request(), generate_reply(), stream_triage(), autopilot_process(). Contains TRIAGE_SYSTEM_PROMPT, REPLY_SYSTEM_PROMPT, AUTOPILOT_SYSTEM_PROMPT as constants.
+autopilot.py
+AutoPilot agent: start(), stop(), is_running(), get_trace(), add_trace(). Background threading loop that processes New requests autonomously.
+seed_data.py
+Run-once script. Calls delete_all_requests() then triage_request() on 8 demo messages, inserts results, sets statuses.
+templates/index.html
+Single file: full dark dashboard HTML + all CSS in <style> tag + all JavaScript in <script> tag. Served by Flask render_template().
+
+03
+Database Schema
+SQLite — zero configuration needed
+
+Table: requests — All Columns
+Column
+Type
+Req
+Purpose + Valid Values
+id
+INTEGER
+YES
+Primary key, auto-increment
+tenant_message
+TEXT
+YES
+Raw text of tenant's original message
+urgency
+TEXT
+YES
+"Emergency" | "High" | "Medium" | "Low"
+category
+TEXT
+YES
+"Plumbing"|"Heating"|"Electrical"|"Structural"|"Pest"|"Appliance"|"Fixtures"|"Noise"|"Other"
+contractor_brief
+TEXT
+YES
+2-3 sentence professional brief for contractor
+tenant_advice
+TEXT
+YES
+One sentence immediate advice for tenant
+response_time
+TEXT
+YES
+"Within 2 hours"|"Within 24 hours"|"Within 3 days"|"Within 1 week"
+ai_reply
+TEXT
+NO
+AI-drafted tenant reply. NULL until generated.
+status
+TEXT
+YES
+Default "New". Values: "New"|"In Progress"|"Resolved"
+language_detected
+TEXT
+NO
+ISO 639-1 code e.g. "en","fr","es". NULL if not detected.
+apartment_ref
+TEXT
+NO
+Unit reference e.g. "Apt 4B". NULL if not provided.
+created_at
+TIMESTAMP
+YES
+UTC. Default: CURRENT_TIMESTAMP
+updated_at
+TIMESTAMP
+YES
+UTC. Updated on every change.
+
+04
+Flask API Endpoints
+All 10 routes in app.py
+
+Method
+Endpoint
+What it does
+Returns
+GET
+/
+Serve the dashboard HTML page
+render_template("index.html")
+POST
+/api/triage
+AI triage + save to DB
+201: full request JSON
+GET
+/api/stream
+SSE streaming triage tokens
+text/event-stream — data: <token>\n\n
+GET
+/api/requests
+All requests, newest first
+200: array of request objects
+GET
+/api/requests/<id>
+Single request by ID
+200: object | 404
+POST
+/api/requests/<id>/reply
+Generate + store AI tenant reply
+200: { reply: string }
+PATCH
+/api/requests/<id>/status
+Update New/In Progress/Resolved
+200: updated object | 400 | 404
+GET
+/api/analytics
+Aggregated stats for charts
+200: analytics dict
+POST
+/api/autopilot/start
+Start AutoPilot background thread
+200: { running: true }
+POST
+/api/autopilot/stop
+Stop AutoPilot
+200: { running: false }
+GET
+/api/autopilot/trace-stream
+SSE stream of AutoPilot trace log
+text/event-stream — JSON entries
+POST
+/api/simulate
+Add one random request from simulator list
+201: new request object
+
+05
+AI Prompts — Exact Text
+Copy these word-for-word into ai_engine.py
+
+TRIAGE_SYSTEM_PROMPT — use for triage_request() and stream_triage()
+You are an AI assistant for a property management company.
+Analyse the maintenance request and return ONLY valid JSON with no
+preamble, no explanation, no markdown fences.
+Return exactly this JSON structure:
+
+{
+  "urgency": "Emergency" | "High" | "Medium" | "Low",
+  "category": "Plumbing"|"Heating"|"Electrical"|"Structural"
+           |"Pest"|"Appliance"|"Fixtures"|"Noise"|"Other",
+  "contractor_brief": "<2-3 sentences, professional, ready to send>",
+  "tenant_advice": "<1 sentence immediate actionable advice>",
+  "response_time": "Within 2 hours"|"Within 24 hours"
+                 |"Within 3 days"|"Within 1 week",
+  "language_detected": "<ISO 639-1 code e.g. en, fr, es, de>"
+}
+
+Urgency rules:
+  Emergency = immediate safety risk, active water damage, no heat
+             with vulnerable persons, gas smell, fire risk
+  High      = affects livability, has dependents, ongoing risk
+  Medium    = functional issue, not immediately dangerous
+  Low       = cosmetic, minor inconvenience
+
+Non-maintenance requests: set Low + Other, handle gracefully.
+
+REPLY_SYSTEM_PROMPT — use for generate_reply()
+You are a professional and empathetic property manager.
+Write a warm, concise reply to a tenant maintenance request.
+Include: acknowledgement, urgency level, expected timeframe,
+and one immediate action they can take.
+Rules:
+- Under 100 words
+- No subject line, no signature
+- Warm but professional
+- If language_detected is not "en", write ENTIRELY in that language
+- Plain text only
+
+AUTOPILOT_SYSTEM_PROMPT — use for autopilot_process()
+You are an autonomous AI property operations agent.
+Process this maintenance request autonomously.
+Return ONLY valid JSON (no preamble, no markdown):
+{
+  "action_taken": "<one sentence what you did>",
+  "urgency": "Emergency"|"High"|"Medium"|"Low",
+  "category": "<category>",
+  "contractor_brief": "<2-3 sentence brief>",
+  "tenant_advice": "<1 sentence advice>",
+  "response_time": "<timeframe>",
+  "new_status": "In Progress"|"Resolved",
+  "reasoning": "<1 sentence urgency explanation>"
+}
+Set new_status to "Resolved" for Low urgency ONLY.
+All others: "In Progress".
+
+06
+6 Features to Build
+Priority order — build top to bottom
+
+#
+Feature
+What it does
+The Wow Moment
+1
+Live AI Triage
+Paste tenant message → AI streams response word-by-word via SSE → saves to DB → queue updates in real time
+Streaming text appearing live, urgency dot turns red
+2
+AutoPilot Mode
+Toggle switch triggers autonomous AI agent that processes the entire New request queue without human input. Live reasoning trace shown.
+Step back, arms crossed, room watches AI work by itself
+3
+Voice Input
+Click mic button, speak the request. Chrome Speech API transcribes live. Auto-triggers triage.
+Speak into laptop — AI responds in 3 seconds. Room gasps.
+4
+Tenant Reply Generator
+Click button on any request → AI drafts professional reply in the tenant's language → copy to clipboard in one click
+One click from problem to drafted reply ready to send
+5
+Live Simulator
+Button sends random realistic request to queue every time clicked. Makes app look like live production system.
+During demo, requests appear arriving in real time
+6
+Contractor Brief Export
+Copy brief to clipboard OR download as formatted .txt file with unit reference and date
+Shows attention to real contractor workflows
+
+07
+Frontend Specification
+Dark dashboard — templates/index.html
+
+Design Language
+Theme
+Dark mode. Body bg: #0A0A0F. Panel bg: #13131A. Border: #2A2A3D.
+Primary Color
+#00D9A3 (teal-green) — active states, labels, accent
+Fonts
+Syne 700/800 (headings). DM Mono 400/500 (labels/code). DM Sans 300/400 (body)
+Layout
+2-column CSS grid: 220px sidebar + fluid main content
+Charts
+Chart.js 4.x via CDN — dark background, teal-green bars
+Icons
+Emoji icons only — no icon library needed
+Animations
+CSS transitions 0.15s ease. Pulse on AI dot. slideIn on new queue items.
+
+CSS Variables — define in :root
+:root {
+  --bg: #0A0A0F;  --surface: #13131A;  --surface2: #1C1C28;
+  --border: #2A2A3D;  --accent: #00D9A3;  --accent2: #4F8FFF;
+  --accent3: #FF6B9D;  --accent4: #F59E0B;  --text: #E8E8F0;
+  --muted: #6B7280;  --red: #EF4444;  --green: #10B981;
+  --mono: "DM Mono", monospace;
+  --sans: "DM Sans", sans-serif;
+  --head: "Syne", sans-serif;
+}
+
+Key UI Elements to Build
+    • Sidebar (220px fixed): logo "PropertyOS", 4 nav items with active state, AI status badge with pulsing green dot
+    • Top bar: page title, AutoPilot toggle (pill with switch), Simulate button, New Request button
+    • Stats row: 4 chips — Emergency (red), High (amber), Resolved Today (green), Avg Response (blue)
+    • Left column: request queue panel (scrollable list) + Chart.js bar chart below it
+    • Right panel: AI output area (streaming result or selected request) + action buttons + input textarea + voice button
+    • AutoPilot trace panel: appears above AI output when AutoPilot ON, scrollable, dark background, monospace font
+    • Toast system: bottom-right corner, 3 types (success/error/info), auto-dismiss after 3 seconds
+    • Voice button: microphone emoji button, turns pink and pulses when listening
+
+08
+AutoPilot Mode — Star Feature
+The #1 differentiator in the hackathon
+
+What AutoPilot Does
+When toggled ON, AutoPilot starts a Python background thread (autopilot.py) that processes the entire queue of "New" requests autonomously. It calls the AI for each one, updates statuses, generates replies, and streams a human-readable reasoning trace to the frontend via SSE.
+AutoPilot Reasoning Trace — Example Output
+14:23:01  🤖 AutoPilot activated — scanning request queue...
+14:23:02  📋 Reading: Apt 4B — "Water pouring from ceiling..."
+14:23:03  🧠 Analysing urgency and category...
+14:23:04  ⚡ Urgency: Emergency | Category: Plumbing
+14:23:04  💭 Reasoning: Active water damage, immediate safety risk
+14:23:05  📝 Generating contractor brief...
+14:23:06  💬 Drafting tenant reply...
+14:23:07  ✉️  Tenant reply drafted and saved.
+14:23:07  ✅ Status updated: New → In Progress
+14:23:08  ─────────────────────────────────────
+14:23:08  📋 Reading: Apt 9A — "Cupboard door hinge broken..."
+14:23:09  🧠 Analysing urgency and category...
+14:23:10  ⚡ Urgency: Low | Category: Fixtures
+14:23:11  ✅ Status updated: New → Resolved
+14:23:12  ─────────────────────────────────────
+14:23:15  ✅ Queue clear — all requests processed.
+
+How to Demo AutoPilot
+    7. Before demo: ensure 4-5 requests are in "New" status (seed_data.py handles this)
+    8. During demo: say "What if the AI just did it?" — then click AutoPilot toggle
+    9. Step back from the laptop. Put hands in pockets. Say nothing.
+    10. The room watches the trace panel filling up with live AI reasoning
+    11. Queue items flip from "New" → "In Progress" or "Resolved" in real time
+    12. After ~30 seconds say: "That's 40 minutes of ops work, done autonomously."
+
+THIS IS WHY YOU WIN: Nobody else in the room will have an autonomous AI agent. They will all have forms and dashboards. You have a system that operates itself.
+
+09
+Seed Data
+8 demo requests — run seed_data.py once tonight
+
+#
+Apt
+Message
+Urgency
+Status
+1
+Apt 4B
+Water pouring from bedroom ceiling right now, started 10 mins ago
+🔴 Emergency
+New
+2
+Apt 2A
+No heating/hot water since morning. 4-month-old baby at home.
+🔴 Emergency
+In Progress
+3
+Apt 7C
+Boiler banging noise for 2 days. Heating works but worried.
+🟠 High
+New
+4
+Apt 1D
+Kitchen tap dripping constantly since last week.
+🟡 Medium
+New
+5
+Apt 9A
+Kitchen cupboard door hinge broken.
+🟢 Low
+Resolved
+6
+Apt 3F
+Il y a une fuite d'eau sous mon évier. (French — leak under sink)
+🟠 High
+New
+7
+Apt 6B
+Neighbour plays loud music every night after midnight.
+🟢 Low
+New
+8
+Apt 5C
+Mouse droppings behind fridge and under sink.
+🟠 High
+In Progress
+Request #6 (French): Shows multi-language detection — contractor brief stays English, tenant reply generated in French. Huge impact for Kota (30+ countries).
+Request #7 (Noise): Shows edge case handling — AI classifies as non-maintenance and handles gracefully. Shows you thought about real-world usage.
+
+10
+Setup & Demo Script
+Do these steps tonight and tomorrow
+
+Tonight — Setup (1 hour max)
+    13. Get Groq API key: console.groq.com → Sign up → API Keys → Create
+    14. Create project folder: mkdir propertyos && cd propertyos
+    15. Create venv: python -m venv venv && source venv/bin/activate
+    16. Save PROPERTYOS_COPILOT_SPEC.md in the folder
+    17. Open VS Code: code . — GitHub Copilot will use the spec automatically
+    18. Use Copilot Chat with the prompt at the end of the spec to build all files
+    19. pip install -r requirements.txt
+    20. Add GROQ_API_KEY to .env file
+    21. python seed_data.py — loads 8 demo requests
+    22. python app.py — verify it runs at localhost:5000
+    23. Test: paste a message, click Triage, confirm it works
+    24. Sleep early — sharp brain beats extra prep
+
+Demo Messages — Save These in Your Phone Notes
+1. EMERGENCY:
+"Water is pouring from my bedroom ceiling right now.
+ It started 10 minutes ago and is getting worse."
+
+2. HIGH + VULNERABLE:
+"No heating or hot water since this morning.
+ I have a 4-month-old baby and it is very cold."
+
+3. FRENCH (multi-language):
+"Il y a une fuite d'eau sous mon évier depuis hier.
+ L'eau s'accumule dans le placard."
+
+4. EDGE CASE:
+"My neighbour plays guitar every night at 2am.
+ I cannot sleep. Can you do something?"
+
+5. MEDIUM:
+"Boiler making loud banging noise for 2 days.
+ Heating works but I am worried."
+
+Your 90-Second Demo Script
+0–15s
+THE PROBLEM — "Property managers handle 40+ requests a week. Each takes 15 mins manually. I built something that does it in 3 seconds."
+15–40s
+TRIAGE DEMO — paste Emergency water message. Click Triage. Say NOTHING. Let streaming text do the talking. Point at red dot.
+40–55s
+AUTOPILOT — "What if it just ran itself?" Flip toggle. Step back. Arms crossed. Watch trace panel. 20 seconds of silence.
+55–65s
+VOICE — "And tenants can just talk to it." Click mic. Speak a request. Watch it triage in real time.
+65–75s
+EDGE CASE — paste neighbour noise message. "Watch it handle a non-maintenance request." Shows real-world thinking.
+75–90s
+CLOSE — "In 6 more hours: WhatsApp integration, auto-assign contractors, calendar invites. This is what ops automation looks like."
+
+You are not building a hackathon project.
+You are building evidence that you think like a founder.
+Good luck tomorrow · Give(a)Go Hackathon · Baseline, Dublin · March 7, 2025 🍀
+Good luck tomorrow · Give(a)Go Hackathon · Baseline, Dublin · March 7, 2025 🍀
