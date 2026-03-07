@@ -354,9 +354,8 @@
   // ── Load Requests ──
   async function loadRequests() {
     try {
-      // FOR THE HACKATHON DEMO: Un-comment this fetch if API is connected
-      // const res = await fetch('/api/requests');
-      // allRequests = await res.json();
+      const res = await fetch('/api/requests');
+      allRequests = await res.json();
       
       renderQueue();
       renderOverviewRecent();

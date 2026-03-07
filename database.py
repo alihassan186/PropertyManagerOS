@@ -291,6 +291,10 @@ def init_comms_tables():
             requires_response   INTEGER DEFAULT 1,
             flags               TEXT DEFAULT '[]',
             welfare_check_needed INTEGER DEFAULT 0,
+            auto_resolved       INTEGER DEFAULT 0,
+            auto_resolution_note TEXT,
+            auto_resolution_category TEXT,
+            auto_resolved_at    TEXT,
             created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -333,6 +337,20 @@ def init_comms_tables():
             created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
         )
     """)
+
+    # Backfill columns for existing installs (SQLite ignores duplicate add column)
+    safety_alters = [
+        "ALTER TABLE communications ADD COLUMN auto_resolved INTEGER DEFAULT 0",
+        "ALTER TABLE communications ADD COLUMN auto_resolution_note TEXT",
+        "ALTER TABLE communications ADD COLUMN auto_resolution_category TEXT",
+        "ALTER TABLE communications ADD COLUMN auto_resolved_at TEXT",
+    ]
+    for statement in safety_alters:
+        try:
+            cursor.execute(statement)
+        except sqlite3.OperationalError as exc:
+            if "duplicate column name" not in str(exc):
+                raise
 
     conn.commit()
     conn.close()
@@ -408,6 +426,24 @@ def update_communication_ai(email_id: str, ai_data: dict):
     ))
     conn.commit()
     conn.close()
+
+
+def mark_communication_auto_resolved(email_id: str, note: str, category: str = None) -> dict:
+    """Flag a communication as auto-resolved with a professional note."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE communications SET
+            auto_resolved = 1,
+            auto_resolution_note = ?,
+            auto_resolution_category = ?,
+            auto_resolved_at = COALESCE(auto_resolved_at, CURRENT_TIMESTAMP),
+            requires_response = 0
+        WHERE email_id = ?
+    """, (note, category, email_id))
+    conn.commit()
+    conn.close()
+    return get_communication_by_email_id(email_id)
 
 
 def save_thread(thread_data: dict):
@@ -626,6 +662,9 @@ def get_comms_analytics() -> dict:
     """)
     media = cursor.fetchone()["c"]
 
+    cursor.execute("SELECT COUNT(*) as c FROM communications WHERE auto_resolved = 1")
+    auto_resolved = cursor.fetchone()["c"]
+
     conn.close()
 
     return {
@@ -640,4 +679,5 @@ def get_comms_analytics() -> dict:
         "by_property": by_property,
         "legal_exposure": legal,
         "media_risk": media,
+        "auto_resolved": auto_resolved,
     }
