@@ -19,31 +19,9 @@ sys.path.insert(0, script_dir)
 
 import database
 import comms_engine
-import auto_resolver
 
 JSON_FILE = os.path.join(script_dir, "data", "dataset.json")
-FALLBACK_JSON = os.path.join(script_dir, "data", "dataset.json")
-
-
-def _record_to_analysis(record: dict) -> dict:
-    if not record:
-        return {}
-    try:
-        flags = json.loads(record.get("flags") or "[]")
-    except json.JSONDecodeError:
-        flags = []
-    return {
-        "urgency": record.get("urgency"),
-        "urgency_score": record.get("urgency_score", 0),
-        "category": record.get("category"),
-        "ai_summary": record.get("ai_summary"),
-        "recommended_action": record.get("recommended_action"),
-        "action_deadline": record.get("action_deadline"),
-        "action_owner": record.get("action_owner"),
-        "sentiment": record.get("sentiment"),
-        "requires_response": bool(record.get("requires_response")),
-        "flags": flags,
-    }
+FALLBACK_JSON = os.path.join(script_dir, "dataset.json")
 
 
 def load_json():
@@ -289,13 +267,16 @@ def process_threads(emails):
 def print_summary():
     """Print final summary stats."""
     analytics = database.get_comms_analytics()
+    by_priority = analytics.get("by_priority", {})
     print("=" * 60)
     print("✅ COMMS INTELLIGENCE LOADED SUCCESSFULLY")
     print("=" * 60)
     print(f"  📧 Total emails:    {analytics['total']}")
     print(f"  📬 Unread:          {analytics['unread']}")
-    print(f"  🔴 Critical:        {analytics['critical']}")
-    print(f"  🟠 High:            {analytics['high']}")
+    print(f"  🔴 Critical:        {by_priority.get('critical', analytics.get('critical', 0))}")
+    print(f"  🟠 Important:       {by_priority.get('important', analytics.get('high', 0))}")
+    print(f"  🟡 Medium:          {by_priority.get('medium', analytics.get('by_urgency', {}).get('medium', 0))}")
+    print(f"  🟢 Low:             {by_priority.get('low', analytics.get('by_urgency', {}).get('low', 0))}")
     print(f"  🚨 Welfare checks:  {analytics['welfare_checks']}")
     print(f"  ✅ Open actions:    {analytics['open_actions']}")
     print(f"  ⚖️  Legal exposure:  {analytics['legal_exposure']}")

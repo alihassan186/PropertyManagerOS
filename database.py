@@ -635,7 +635,7 @@ def get_comms_analytics() -> dict:
         FROM communications
         GROUP BY from_type ORDER BY c DESC
     """)
-    by_type = {r["from_type"]: r["c"] for r in cursor.fetchall()}
+    by_type = {(r["from_type"] or "unknown"): r["c"] for r in cursor.fetchall()}
 
     cursor.execute("""
         SELECT urgency, COUNT(*) as c
@@ -645,12 +645,22 @@ def get_comms_analytics() -> dict:
     """)
     by_urgency = {r["urgency"]: r["c"] for r in cursor.fetchall()}
 
+    cursor.execute("SELECT COUNT(*) as c FROM communications WHERE urgency IS NULL")
+    uncategorized = cursor.fetchone()["c"]
+
+    by_priority = {
+        "critical": by_urgency.get("critical", 0),
+        "important": by_urgency.get("high", 0),
+        "medium": by_urgency.get("medium", 0),
+        "low": by_urgency.get("low", 0) + by_urgency.get("info", 0) + uncategorized,
+    }
+
     cursor.execute("""
         SELECT from_property_id, COUNT(*) as c
         FROM communications
         GROUP BY from_property_id ORDER BY c DESC
     """)
-    by_property = {r["from_property_id"]: r["c"] for r in cursor.fetchall()}
+    by_property = {(r["from_property_id"] or "unknown"): r["c"] for r in cursor.fetchall()}
 
     cursor.execute("""
         SELECT COUNT(*) as c FROM communications WHERE flags LIKE '%legal_exposure%'
@@ -676,6 +686,7 @@ def get_comms_analytics() -> dict:
         "open_actions": open_actions,
         "by_sender_type": by_type,
         "by_urgency": by_urgency,
+        "by_priority": by_priority,
         "by_property": by_property,
         "legal_exposure": legal,
         "media_risk": media,

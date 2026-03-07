@@ -14,6 +14,7 @@ from flask import Flask, Response, jsonify, render_template, request, stream_wit
 import autopilot
 import database
 import comms_engine
+import auto_resolve
 from ai_engine import generate_reply, stream_triage, triage_request
 
 app = Flask(__name__)
@@ -21,6 +22,29 @@ app = Flask(__name__)
 # Initialise DB on startup
 database.init_db()
 database.init_comms_tables()
+
+
+# ─── Comms priority helpers ──────────────────────────────────────────────────────
+
+_COMMS_PRIORITY_LEVELS = ("critical", "important", "medium", "low")
+
+
+def _to_comms_priority_level(urgency: str | None) -> str:
+    value = (urgency or "").strip().lower()
+    if value == "critical":
+        return "critical"
+    if value == "high":
+        return "important"
+    if value == "medium":
+        return "medium"
+    # Treat low/info/unknown as low in the 4-level model.
+    return "low"
+
+
+def _attach_priority_level(record: dict) -> dict:
+    enriched = dict(record)
+    enriched["priority_level"] = _to_comms_priority_level(record.get("urgency"))
+    return enriched
 
 
 # ─── Demo simulator messages ────────────────────────────────────────────────────
@@ -267,19 +291,33 @@ def api_simulate():
 
 @app.route("/api/comms")
 def api_get_comms():
-    """Return all communications sorted by urgency score."""
-    comms = database.get_all_communications()
+    """Return comms issues, optionally filtered by 4-level priority."""
+    priority = (request.args.get("priority") or "").strip().lower()
+    comms = [_attach_priority_level(c) for c in database.get_all_communications()]
+
+    if priority and priority != "all":
+        if priority not in _COMMS_PRIORITY_LEVELS:
+            return jsonify({"error": "priority must be one of: critical, important, medium, low, all"}), 400
+        comms = [c for c in comms if c.get("priority_level") == priority]
+
     return jsonify(comms), 200
 
 
-@app.route("/api/comms/all")
-def api_comms_all():
-    """Get all communications."""
-    try:
-        comms = database.get_all_communications()
-        return jsonify(comms)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+@app.route("/api/comms/categorized")
+def api_get_comms_categorized():
+    """Return comms issues grouped into critical/important/medium/low."""
+    include_items = (request.args.get("include_items") or "true").strip().lower() != "false"
+    comms = [_attach_priority_level(c) for c in database.get_all_communications()]
+
+    buckets = {level: [] for level in _COMMS_PRIORITY_LEVELS}
+    for item in comms:
+        buckets[item["priority_level"]].append(item)
+
+    counts = {level: len(items) for level, items in buckets.items()}
+    payload = {"counts": counts}
+    if include_items:
+        payload["issues"] = buckets
+    return jsonify(payload), 200
 
 
 @app.route("/api/comms/threads")
@@ -292,7 +330,13 @@ def api_comms_threads():
 @app.route("/api/comms/analytics")
 def api_comms_analytics():
     """Aggregated comms stats."""
-    return jsonify(database.get_comms_analytics()), 200
+    analytics = database.get_comms_analytics()
+    by_priority = analytics.get("by_priority", {})
+    analytics["critical"] = by_priority.get("critical", analytics.get("critical", 0))
+    analytics["important"] = by_priority.get("important", analytics.get("high", 0))
+    analytics["medium"] = by_priority.get("medium", analytics.get("by_urgency", {}).get("medium", 0))
+    analytics["low"] = by_priority.get("low", analytics.get("by_urgency", {}).get("low", 0))
+    return jsonify(analytics), 200
 
 
 @app.route("/api/comms/actions")
@@ -316,7 +360,7 @@ def api_update_action_status(action_id):
 
 @app.route("/api/comms/<string:email_id>/reply", methods=["POST"])
 def api_comms_reply(email_id):
-    """Generate an AI draft reply for an email."""
+    """Generate a draft reply for an email (FAQ template first, AI fallback)."""
     comm = database.get_communication_by_email_id(email_id)
     if not comm:
         return jsonify({"error": "Not found"}), 404
@@ -341,12 +385,49 @@ def api_comms_reply(email_id):
             "property_id": comm.get("from_property_id"),
         }
     }
+
+    # Attempt deterministic FAQ auto-reply before using AI.
+    thread_rows = database.get_thread_emails(comm.get("thread_id") or "") or [comm]
+    thread_text = "\n\n".join(
+        f"From: {row.get('from_name', '')}\nSubject: {row.get('subject', '')}\n{row.get('body', '')}"
+        for row in thread_rows
+    )
+    thread_bundle = {
+        "subject": comm.get("subject", ""),
+        "thread_text": thread_text,
+        "latest_sender_name": comm.get("from_name", ""),
+        "property_manager": "Property Manager",
+        "property_name": comm.get("from_property_id", "") or "your property",
+    }
+    auto_decision = auto_resolve.evaluate_auto_resolve(
+        thread_bundle=thread_bundle,
+        templates=auto_resolve.load_templates(),
+    )
+    if auto_decision.get("is_auto"):
+        return jsonify(
+            {
+                "reply": auto_decision.get("draft_reply", ""),
+                "mode": "template",
+                "template_id": auto_decision.get("template_id"),
+                "handling_reason": auto_decision.get("handling_reason", ""),
+                "strong_signal_present": auto_decision.get("strong_signal_present", False),
+            }
+        ), 200
+
     try:
         reply = comms_engine.draft_reply(email_data, analysis)
     except Exception as e:
         return jsonify({"error": f"AI error: {str(e)}"}), 500
 
-    return jsonify({"reply": reply}), 200
+    return jsonify(
+        {
+            "reply": reply,
+            "mode": "ai",
+            "template_id": auto_decision.get("template_id"),
+            "handling_reason": auto_decision.get("handling_reason", ""),
+            "strong_signal_present": auto_decision.get("strong_signal_present", False),
+        }
+    ), 200
 
 
 @app.route("/api/comms/<string:email_id>/stream-analysis")
@@ -387,9 +468,9 @@ def api_comms_stream_analysis(email_id):
 
 @app.route("/api/comms/priority-board")
 def api_comms_priority_board():
-    """Return top 10 critical/high emails plus all open actions."""
-    all_comms = database.get_all_communications()
-    priority = [c for c in all_comms if c.get("urgency") in ("critical", "high")][:10]
+    """Return top 10 critical/important emails plus all open actions."""
+    all_comms = [_attach_priority_level(c) for c in database.get_all_communications()]
+    priority = [c for c in all_comms if c.get("priority_level") in ("critical", "important")][:10]
     actions = database.get_all_action_items()
     analytics = database.get_comms_analytics()
     return jsonify({

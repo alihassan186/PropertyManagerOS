@@ -145,11 +145,22 @@
     
     <!-- Left List -->
     <div id="queue-list-panel" class="w-90 min-w-90 border-r border-border-base flex flex-col bg-page">
-      <div class="flex gap-1 py-3 px-3.5 border-b border-border-base shrink-0">
-        <div class="filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25 active" onclick="setFilter('All', this)">All</div>
-        <div class="filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setFilter('New', this)">New</div>
-        <div class="filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setFilter('In Progress', this)">In Progress</div>
-        <div class="filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setFilter('Resolved', this)">Resolved</div>
+      <div class="py-3 px-3.5 border-b border-border-base shrink-0">
+        <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">Status</div>
+        <div class="flex gap-1 flex-wrap mb-2">
+          <div class="status-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25 active" onclick="setStatusFilter('All', this)">All</div>
+          <div class="status-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setStatusFilter('New', this)">New</div>
+          <div class="status-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setStatusFilter('In Progress', this)">In Progress</div>
+          <div class="status-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setStatusFilter('Resolved', this)">Resolved</div>
+        </div>
+        <div class="font-mono text-[10px] text-text-muted uppercase tracking-[0.5px] mb-1.5">Issue Level</div>
+        <div class="flex gap-1 flex-wrap">
+          <div class="level-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25 active" onclick="setLevelFilter('All', this)">All</div>
+          <div class="level-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setLevelFilter('critical', this)">Critical</div>
+          <div class="level-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setLevelFilter('important', this)">Important</div>
+          <div class="level-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setLevelFilter('medium', this)">Medium</div>
+          <div class="level-filter-tab px-3 py-1.5 rounded-md font-mono text-[11px] cursor-pointer transition-all duration-150 text-text-muted border border-transparent hover:text-text-main [&.active]:bg-accent/10 [&.active]:text-accent [&.active]:border-accent/25" onclick="setLevelFilter('low', this)">Low</div>
+        </div>
       </div>
       <div id="queue-items" class="flex-1 overflow-y-auto p-2.5"></div>
     </div>
@@ -287,7 +298,8 @@
 <script>
   // ── State ──
   let allRequests =[];
-  let queueFilter = 'All';
+  let queueStatusFilter = 'All';
+  let queueLevelFilter = 'All';
   let selectedId  = null;
   let apRunning   = false;
   let apStream    = null;
@@ -378,15 +390,35 @@
   }
 
   // ── Queue Rendering (Massive JS literal overhaul) ──
-  function setFilter(f, el) {
-    queueFilter = f;
-    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  function getIssueLevel(urgency) {
+    const value = String(urgency || '').toLowerCase();
+    if (value === 'emergency' || value === 'critical') return 'critical';
+    if (value === 'high' || value === 'important') return 'important';
+    if (value === 'medium') return 'medium';
+    return 'low';
+  }
+
+  function setStatusFilter(f, el) {
+    queueStatusFilter = f;
+    document.querySelectorAll('.status-filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderQueue();
+  }
+
+  function setLevelFilter(level, el) {
+    queueLevelFilter = level;
+    document.querySelectorAll('.level-filter-tab').forEach(t => t.classList.remove('active'));
     el.classList.add('active');
     renderQueue();
   }
 
   function renderQueue() {
-    const filtered = queueFilter === 'All' ? allRequests : allRequests.filter(r => r.status === queueFilter);
+    const statusFiltered = queueStatusFilter === 'All'
+      ? allRequests
+      : allRequests.filter(r => r.status === queueStatusFilter);
+    const filtered = queueLevelFilter === 'All'
+      ? statusFiltered
+      : statusFiltered.filter(r => getIssueLevel(r.urgency) === queueLevelFilter);
     const container = document.getElementById('queue-items');
 
     if (!filtered.length) {
