@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PropertyOS — Manager Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg:       #0A0A0F;
+      --surface:  #13131A;
+      --surface2: #1C1C28;
+      --border:   #2A2A3D;
+      --border2:  #353550;
+      --accent:   #00D9A3;
+      --accent2:  #4F8FFF;
+      --accent3:  #FF6B9D;
+      --accent4:  #F59E0B;
+      --text:     #E8E8F0;
+      --muted:    #6B7280;
+      --red:      #EF4444;
+      --green:    #10B981;
+      --mono:     "DM Mono", monospace;
+      --sans:     "DM Sans", sans-serif;
+      --head:     "Syne", sans-serif;
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html, body { height:100%; overflow:hidden; }
+    body { background:var(--bg); color:var(--text); font-family:var(--sans); font-size:14px; display:flex; }
+
+    ::-webkit-scrollbar { width:5px; height:5px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+
+    /* ── Sidebar ── */
+    #sidebar {
+      width:220px; min-width:220px;
+      background:var(--surface);
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+      padding:0;
+      height:100vh;
+    }
+    .sidebar-logo {
+      padding:22px 20px 18px;
+      border-bottom:1px solid var(--border);
+    }
+    .sidebar-logo h1 {
+      font-family:var(--head);
+      font-size:18px; font-weight:800;
+      color:var(--accent);
+      letter-spacing:-0.5px;
+    }
+    .sidebar-logo span {
+      display:block;
+      font-family:var(--mono);
+      font-size:10px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+    .sidebar-section-label {
+      font-family:var(--mono);
+      font-size:9px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:1px;
+      padding:16px 20px 6px;
+    }
+    nav { padding:0 10px; }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding:9px 12px;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:13px;
+      color:var(--muted);
+      transition:all 0.15s;
+      margin-bottom:2px;
+      user-select:none;
+    }
+    .nav-item:hover { background:var(--surface2); color:var(--text); }
+    .nav-item.active { background:rgba(0,217,163,0.1); color:var(--accent); font-weight:500; }
+    .nav-icon { font-size:15px; width:20px; text-align:center; }
+    .nav-badge {
+      margin-left:auto;
+      font-family:var(--mono); font-size:10px;
+      background:rgba(239,68,68,0.2); color:var(--red);
+      padding:1px 6px; border-radius:8px;
+    }
+    .nav-badge.blue { background:rgba(79,143,255,0.15); color:var(--accent2); }
+
+    .sidebar-sep { border:none; border-top:1px solid var(--border); margin:10px 0; }
+
+    .ai-status-widget {
+      margin:auto 14px 14px;
+      padding:12px;
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:10px;
+    }
+    .ai-status-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+    .ai-dot {
+      width:8px; height:8px; border-radius:50%;
+      background:var(--green);
+      animation:pulse-dot 2s infinite;
+      flex-shrink:0;
+    }
+    .ai-dot.busy { background:var(--accent4); }
+    .ai-dot.offline { background:var(--muted); animation:none; }
+    @keyframes pulse-dot {
+      0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(16,185,129,0.4)}
+      50%{opacity:.8;box-shadow:0 0 0 4px rgba(16,185,129,0)}
+    }
+    .ai-status-label { font-family:var(--mono); font-size:11px; color:var(--text); }
+    .ai-model { font-family:var(--mono); font-size:10px; color:var(--muted); }
+    .tenant-link {
+      display:flex; align-items:center; gap:8px;
+      padding:8px 12px;
+      background:rgba(0,217,163,0.06);
+      border:1px solid rgba(0,217,163,0.2);
+      border-radius:8px;
+      text-decoration:none;
+      color:var(--accent);
+      font-size:12px;
+      font-family:var(--mono);
+      transition:all 0.15s;
+      margin:2px 10px 10px;
+    }
+    .tenant-link:hover { background:rgba(0,217,163,0.12); }
+
+    /* ── Main ── */
+    #main { flex:1; display:flex; flex-direction:column; min-width:0; height:100vh; overflow:hidden; }
+
+    /* ── Topbar ── */
+    #topbar {
+      background:var(--surface);
+      border-bottom:1px solid var(--border);
+      padding:13px 24px;
+      display:flex; align-items:center; gap:10px;
+      flex-shrink:0;
+    }
+    #topbar-title { font-family:var(--head); font-size:17px; font-weight:700; letter-spacing:-0.3px; flex:1; }
+    .autopilot-pill {
+      display:flex; align-items:center; gap:8px;
+      background:var(--surface2);
+      border:1px solid var(--border);
+      border-radius:20px;
+      padding:6px 14px;
+      cursor:pointer;
+      transition:all 0.15s;
+      user-select:none;
+    }
+    .autopilot-pill:hover { border-color:var(--accent); }
+    .autopilot-pill.active { border-color:var(--accent); background:rgba(0,217,163,0.08); }
+    .ap-label { font-family:var(--mono); font-size:11px; font-weight:500; color:var(--muted); }
+    .autopilot-pill.active .ap-label { color:var(--accent); }
+    .toggle { width:30px; height:17px; background:var(--border); border-radius:9px; position:relative; transition:background 0.2s; flex-shrink:0; }
+    .autopilot-pill.active .toggle { background:var(--accent); }
+    .toggle::after {
+      content:''; position:absolute;
+      width:11px; height:11px;
+      background:#fff; border-radius:50%;
+      top:3px; left:3px;
+      transition:transform 0.2s;
+    }
+    .autopilot-pill.active .toggle::after { transform:translateX(13px); }
+    .btn {
+      padding:7px 14px; border-radius:8px; border:none;
+      cursor:pointer; font-family:var(--sans); font-size:12px; font-weight:500;
+      transition:all 0.15s; display:flex; align-items:center; gap:6px;
+    }
+    .btn:active { transform:scale(0.97); }
+    .btn-primary { background:var(--accent); color:#0A0A0F; }
+    .btn-primary:hover { background:#00c49a; }
+    .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--accent); color:var(--accent); }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+    .btn-ghost:hover { color:var(--text); border-color:var(--border2); }
+    .btn-sm { padding:5px 10px; font-size:11px; }
+
+    /* ── Pages ── */
+    .page { display:none; flex:1; overflow:hidden; flex-direction:column; }
+    .page.active { display:flex; }
+
+    /* ── Page: Overview ── */
+    #page-overview {
+      overflow-y:auto;
+      padding:20px 24px;
+      gap:16px;
+    }
+    .stats-grid {
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+    .stat-card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:16px 18px;
+    }
+    .sc-label { font-family:var(--mono); font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px; }
+    .sc-value { font-family:var(--head); font-size:32px; font-weight:800; line-height:1; }
+    .sc-sub { font-size:11px; color:var(--muted); margin-top:4px; }
+    .sc-red .sc-value { color:var(--red); }
+    .sc-amber .sc-value { color:var(--accent4); }
+    .sc-green .sc-value { color:var(--green); }
+    .sc-blue .sc-value { color:var(--accent2); }
+
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .three-col { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+
+    /* ── Page: Queue ── */
+    #page-queue { flex-direction:row; overflow:hidden; }
+    #queue-list-panel {
+      width:360px; min-width:360px;
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+    }
+    #queue-detail-panel {
+      flex:1; overflow-y:auto;
+      display:flex; flex-direction:column;
+    }
+
+    /* Filter tabs */
+    .filter-tabs {
+      display:flex; gap:4px;
+      padding:12px 14px;
+      border-bottom:1px solid var(--border);
+      flex-shrink:0;
+    }
+    .filter-tab {
+      padding:5px 12px;
+      border-radius:6px;
+      font-family:var(--mono); font-size:11px;
+      cursor:pointer; transition:all 0.15s;
+      color:var(--muted);
+      border:1px solid transparent;
+    }
+    .filter-tab:hover { color:var(--text); }
+    .filter-tab.active { background:rgba(0,217,163,0.1); color:var(--accent); border-color:rgba(0,217,163,0.25); }
+
+    /* Queue items */
+    #queue-items { flex:1; overflow-y:auto; padding:10px; }
+    .qi {
+      padding:11px 13px;
+      border-radius:9px;
+      border:1px solid var(--border);
+      margin-bottom:7px;
+      cursor:pointer;
+      transition:all 0.15s;
+      animation:slideIn 0.2s ease;
+    }
+    .qi:hover { border-color:var(--border2); background:var(--surface2); }
+    .qi.selected { border-color:var(--accent); background:rgba(0,217,163,0.05); }
+    @keyframes slideIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+    .qi-top { display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+    .qi-apt { font-family:var(--mono); font-size:11px; font-weight:500; color:var(--accent); }
+    .qi-status { font-family:var(--mono); font-size:10px; padding:1px 7px; border-radius:7px; }
+    .st-new          { background:rgba(79,143,255,0.12); color:var(--accent2); border:1px solid rgba(79,143,255,0.25); }
+    .st-in-progress  { background:rgba(245,158,11,0.12); color:var(--accent4); border:1px solid rgba(245,158,11,0.25); }
+    .st-resolved     { background:rgba(16,185,129,0.12); color:var(--green);   border:1px solid rgba(16,185,129,0.25); }
+    .ur-Emergency { color:var(--red); }
+    .ur-High      { color:var(--accent4); }
+    .ur-Medium    { color:var(--accent2); }
+    .ur-Low       { color:var(--green); }
+    .qi-msg { font-size:12px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .qi-foot { display:flex; align-items:center; gap:7px; margin-top:5px; }
+    .qi-cat { font-family:var(--mono); font-size:10px; color:var(--muted); background:var(--surface2); padding:1px 6px; border-radius:4px; }
+    .qi-time { font-family:var(--mono); font-size:10px; color:var(--muted); margin-left:auto; }
+
+    /* Queue detail */
+    .detail-empty {
+      flex:1; display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      color:var(--muted); gap:10px;
+      font-size:13px;
+    }
+    .detail-empty .big-icon { font-size:40px; }
+
+    #detail-body { padding:24px; }
+    .detail-header {
+      display:flex; align-items:flex-start; gap:14px;
+      margin-bottom:22px; padding-bottom:18px;
+      border-bottom:1px solid var(--border);
+    }
+    .detail-urgency-icon {
+      width:44px; height:44px; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:22px; flex-shrink:0;
+    }
+    .ui-Emergency { background:rgba(239,68,68,0.15); }
+    .ui-High      { background:rgba(245,158,11,0.15); }
+    .ui-Medium    { background:rgba(79,143,255,0.15); }
+    .ui-Low       { background:rgba(16,185,129,0.15); }
+    .detail-meta h3 { font-family:var(--head); font-size:16px; font-weight:700; margin-bottom:6px; }
+    .meta-pills { display:flex; flex-wrap:wrap; gap:6px; }
+    .meta-pill {
+      font-family:var(--mono); font-size:10px;
+      padding:2px 8px; border-radius:8px;
+    }
+    .mp-urgency-Emergency { background:rgba(239,68,68,0.12); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+    .mp-urgency-High      { background:rgba(245,158,11,0.12); color:var(--accent4); border:1px solid rgba(245,158,11,0.3); }
+    .mp-urgency-Medium    { background:rgba(79,143,255,0.12); color:var(--accent2); border:1px solid rgba(79,143,255,0.3); }
+    .mp-urgency-Low       { background:rgba(16,185,129,0.12); color:var(--green); border:1px solid rgba(16,185,129,0.3); }
+    .mp-default { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+
+    .detail-section { margin-bottom:18px; }
+    .ds-label {
+      font-family:var(--mono); font-size:10px; color:var(--muted);
+      text-transform:uppercase; letter-spacing:0.5px; margin-bottom:7px;
+    }
+    .ds-value { font-size:13px; color:var(--text); line-height:1.6; }
+    .brief-box {
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:9px; padding:12px 14px;
+      font-size:13px; line-height:1.6; color:var(--text);
+    }
+    .advice-pill {
+      background:rgba(0,217,163,0.08); border:1px solid rgba(0,217,163,0.2);
+      border-radius:8px; padding:10px 13px;
+      font-size:13px; color:var(--accent);
+    }
+    .reply-box {
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:9px; padding:12px 14px;
+      font-size:13px; line-height:1.6; color:var(--text);
+      min-height:70px;
+    }
+    .action-bar {
+      display:flex; flex-wrap:wrap; gap:8px;
+      padding-top:12px; margin-top:4px;
+      border-top:1px solid var(--border);
+    }
+    .status-select {
+      background:var(--surface2); border:1px solid var(--border);
+      border-radius:8px; color:var(--text);
+      padding:6px 10px; font-family:var(--sans); font-size:12px;
+      cursor:pointer; outline:none;
+    }
+    .status-select:focus { border-color:var(--accent); }
+
+    /* ── Page: AutoPilot ── */
+    #page-autopilot { overflow-y:auto; padding:20px 24px; gap:16px; }
+    .ap-header-card {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:24px;
+      display:flex; align-items:center; gap:20px;
+    }
+    .ap-hero-icon {
+      font-size:40px;
+      width:70px; height:70px;
+      background:rgba(0,217,163,0.08);
+      border:1px solid rgba(0,217,163,0.2);
+      border-radius:16px;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .ap-hero-title { font-family:var(--head); font-size:22px; font-weight:800; letter-spacing:-0.5px; }
+    .ap-hero-sub { color:var(--muted); font-size:13px; line-height:1.5; margin-top:4px; }
+    .ap-big-btn {
+      margin-left:auto; flex-shrink:0;
+      padding:12px 24px;
+      background:var(--accent); color:#0A0A0F;
+      border:none; border-radius:10px;
+      font-family:var(--head); font-size:14px; font-weight:700;
+      cursor:pointer; transition:all 0.15s;
+      display:flex; align-items:center; gap:8px;
+    }
+    .ap-big-btn:hover { background:#00c49a; }
+    .ap-big-btn.running { background:rgba(239,68,68,0.15); color:var(--red); border:1px solid rgba(239,68,68,0.3); }
+    .ap-big-btn.running:hover { background:rgba(239,68,68,0.25); }
+
+    .trace-card {
+      background:var(--surface);
+      border:1px solid rgba(0,217,163,0.2);
+      border-radius:14px; overflow:hidden;
+    }
+    .trace-card-header {
+      padding:13px 18px;
+      border-bottom:1px solid rgba(0,217,163,0.15);
+      display:flex; align-items:center; gap:10px;
+      background:rgba(0,217,163,0.03);
+    }
+    .trace-card-title { font-family:var(--head); font-size:13px; color:var(--accent); flex:1; }
+    #trace-body {
+      background:var(--bg); padding:14px 16px;
+      font-family:var(--mono); font-size:12px; line-height:1.8;
+      min-height:200px; max-height:400px; overflow-y:auto;
+    }
+    .trace-line { display:flex; gap:10px; animation:fadeIn 0.15s ease; }
+    .trace-ts { color:var(--muted); flex-shrink:0; min-width:58px; }
+    .trace-msg { color:var(--text); }
+    .trace-line.sep .trace-msg { color:var(--border); }
+    @keyframes fadeIn { from{opacity:0}to{opacity:1} }
+    .trace-empty { color:var(--muted); text-align:center; padding:40px 0; font-size:13px; }
+
+    .ap-queue-preview {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:18px;
+    }
+    .ap-queue-title { font-family:var(--head); font-size:14px; font-weight:700; margin-bottom:12px; }
+    .ap-qi {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 0; border-bottom:1px solid var(--border);
+      font-size:13px;
+    }
+    .ap-qi:last-child { border-bottom:none; }
+
+    /* ── Page: Analytics ── */
+    #page-analytics { overflow-y:auto; padding:20px 24px; gap:16px; }
+    .chart-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:12px; overflow:hidden;
+    }
+    .chart-card-header {
+      padding:13px 18px; border-bottom:1px solid var(--border);
+      font-family:var(--head); font-size:13px; font-weight:700;
+    }
+    .chart-body { padding:16px; }
+    .chart-wrap { height:180px; }
+    .donut-wrap { height:200px; display:flex; align-items:center; justify-content:center; }
+    .analytics-list { padding:0 18px 16px; }
+    .al-row {
+      display:flex; align-items:center; gap:10px;
+      padding:8px 0; border-bottom:1px solid var(--border);
+      font-size:13px;
+    }
+    .al-row:last-child { border-bottom:none; }
+    .al-bar {
+      flex:1; height:6px; background:var(--surface2);
+      border-radius:3px; overflow:hidden;
+    }
+    .al-fill { height:100%; background:var(--accent); border-radius:3px; transition:width 0.5s ease; }
+    .al-label { font-family:var(--mono); font-size:11px; color:var(--muted); min-width:80px; }
+    .al-count { font-family:var(--mono); font-size:11px; color:var(--text); min-width:28px; text-align:right; }
+
+    /* ── Spinner ── */
+    .spinner { width:14px; height:14px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.6s linear infinite; display:inline-block; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+
+    /* ── Panel shared ── */
+    .panel {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:12px;
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .panel-header {
+      padding:13px 16px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; gap:8px;
+      flex-shrink:0;
+    }
+    .panel-title { font-family:var(--head); font-size:13px; font-weight:700; flex:1; }
+    .panel-body { flex:1; overflow-y:auto; padding:12px; }
+    .badge { font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:8px; }
+    .badge-muted { background:var(--surface2); color:var(--muted); border:1px solid var(--border); }
+
+    /* ── Toast ── */
+    #toast-container {
+      position:fixed; bottom:24px; right:24px;
+      display:flex; flex-direction:column; gap:8px; z-index:9999;
+    }
+    .toast {
+      background:var(--surface); border:1px solid var(--border2);
+      border-radius:10px; padding:11px 15px;
+      display:flex; align-items:center; gap:9px;
+      font-size:13px; width:290px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.5);
+      animation:toastIn 0.2s ease;
+    }
+    @keyframes toastIn { from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)} }
+    .toast.success { border-color:rgba(16,185,129,0.4); }
+    .toast.error   { border-color:rgba(239,68,68,0.4); }
+    .toast.info    { border-color:rgba(79,143,255,0.4); }
+
+    .divider { border:none; border-top:1px solid var(--border); margin:14px 0; }
+    .empty-state { text-align:center; padding:40px 20px; color:var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────── -->
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <h1>🏠 PropertyOS</h1>
+    <span>Manager Dashboard</span>
+  </div>
+
+  <div class="sidebar-section-label">Operations</div>
+  <nav>
+    <div class="nav-item active" data-page="overview" onclick="navigate('overview', this)">
+      <span class="nav-icon">📊</span> Overview
+    </div>
+    <div class="nav-item" data-page="queue" onclick="navigate('queue', this)">
+      <span class="nav-icon">📋</span> Request Queue
+      <span class="nav-badge blue" id="nav-new-count" style="display:none;"></span>
+    </div>
+    <div class="nav-item" data-page="autopilot" onclick="navigate('autopilot', this)">
+      <span class="nav-icon">🤖</span> AutoPilot
+      <span class="nav-badge" id="nav-emergency-count" style="display:none;"></span>
+    </div>
+    <div class="nav-item" data-page="analytics" onclick="navigate('analytics', this)">
+      <span class="nav-icon">📈</span> Analytics
+    </div>
+  </nav>
+
+  <hr class="sidebar-sep" />
+  <a href="/" target="_blank" class="tenant-link">
+    🏠 Tenant Portal ↗
+  </a>
+
+  <div class="ai-status-widget">
+    <div class="ai-status-row">
+      <div class="ai-dot" id="ai-dot"></div>
+      <span class="ai-status-label" id="ai-status-label">AI Ready</span>
+    </div>
+    <div class="ai-model">llama-3.3-70b-versatile</div>
+  </div>
+</aside>
+
+<!-- ── Main Area ──────────────────────────────────────────────────── -->
+<main id="main">
+
+  <!-- Topbar -->
+  <div id="topbar">
+    <div id="topbar-title">Overview</div>
+
+    <div class="autopilot-pill" id="ap-toggle" onclick="toggleAutopilot()">
+      <span class="ap-label">🤖 AUTOPILOT</span>
+      <div class="toggle"></div>
+    </div>
+    <button class="btn btn-secondary" onclick="simulate()">⚡ Simulate Request</button>
+    <button class="btn btn-secondary" onclick="loadAll()">↻</button>
+  </div>
+
+  <!-- ── Page: Overview ── -->
+  <div class="page active" id="page-overview">
+    <div class="stats-grid">
+      <div class="stat-card sc-red">
+        <div class="sc-label">🔴 Active Emergencies</div>
+        <div class="sc-value" id="ov-emergency">0</div>
+        <div class="sc-sub">Requires immediate action</div>
+      </div>
+      <div class="stat-card sc-amber">
+        <div class="sc-label">🟠 High Priority</div>
+        <div class="sc-value" id="ov-high">0</div>
+        <div class="sc-sub">Active unresolved</div>
+      </div>
+      <div class="stat-card sc-green">
+        <div class="sc-label">✅ Resolved Today</div>
+        <div class="sc-value" id="ov-resolved">0</div>
+        <div class="sc-sub">Last 24 hours</div>
+      </div>
+      <div class="stat-card sc-blue">
+        <div class="sc-label">📦 Total Requests</div>
+        <div class="sc-value" id="ov-total">0</div>
+        <div class="sc-sub">All time</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <!-- Recent requests -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🕐 Recent Requests</span>
+          <button class="btn btn-ghost btn-sm" onclick="navigate('queue', document.querySelector('[data-page=queue]'))">View All →</button>
+        </div>
+        <div class="panel-body" id="ov-recent"></div>
+      </div>
+
+      <!-- Status breakdown -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📊 Status Breakdown</span>
+        </div>
+        <div class="panel-body">
+          <div class="chart-wrap">
+            <canvas id="status-chart"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Category breakdown bar list -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">🔧 Requests by Category</span>
+      </div>
+      <div class="analytics-list" id="cat-list"></div>
+    </div>
+  </div>
+
+  <!-- ── Page: Queue ── -->
+  <div class="page" id="page-queue">
+    <!-- Left list -->
+    <div id="queue-list-panel">
+      <div class="filter-tabs">
+        <div class="filter-tab active" onclick="setFilter('All', this)">All</div>
+        <div class="filter-tab" onclick="setFilter('New', this)">New</div>
+        <div class="filter-tab" onclick="setFilter('In Progress', this)">In Progress</div>
+        <div class="filter-tab" onclick="setFilter('Resolved', this)">Resolved</div>
+      </div>
+      <div id="queue-items"></div>
+    </div>
+
+    <!-- Right detail -->
+    <div id="queue-detail-panel">
+      <div class="detail-empty" id="detail-empty">
+        <div class="big-icon">👈</div>
+        <div>Select a request to view details</div>
+      </div>
+      <div id="detail-body" style="display:none;">
+        <div class="detail-header">
+          <div class="detail-urgency-icon" id="d-urgency-icon">🔧</div>
+          <div class="detail-meta">
+            <h3 id="d-title">Request</h3>
+            <div class="meta-pills" id="d-pills"></div>
+          </div>
+        </div>
+
+        <div class="detail-section">
+          <div class="ds-label">Tenant Message</div>
+          <div class="ds-value" id="d-message"></div>
+        </div>
+
+        <div class="detail-section">
+          <div class="ds-label">Contractor Brief</div>
+          <div class="brief-box" id="d-brief"></div>
+        </div>
+
+        <div class="detail-section">
+          <div class="ds-label">Immediate Tenant Advice</div>
+          <div class="advice-pill" id="d-advice"></div>
+        </div>
+
+        <div class="detail-section" id="reply-section">
+          <div class="ds-label" style="display:flex;align-items:center;gap:8px;">
+            AI Tenant Reply
+            <span id="lang-badge" class="badge badge-muted" style="display:none;"></span>
+          </div>
+          <div class="reply-box" id="d-reply" style="color:var(--muted);">Click "Generate Reply" to draft a professional response...</div>
+        </div>
+
+        <div class="action-bar">
+          <select class="status-select" id="d-status-select" onchange="updateStatus()">
+            <option value="New">New</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Resolved">Resolved</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="generateReply()">💬 Generate Reply</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyBrief()">📋 Copy Brief</button>
+          <button class="btn btn-secondary btn-sm" onclick="copyReply()">📨 Copy Reply</button>
+          <button class="btn btn-ghost btn-sm" onclick="downloadBrief()">⬇ Export .txt</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Page: AutoPilot ── -->
+  <div class="page" id="page-autopilot">
+
+    <div class="ap-header-card">
+      <div class="ap-hero-icon">🤖</div>
+      <div>
+        <div class="ap-hero-title">AutoPilot Mode</div>
+        <div class="ap-hero-sub">Autonomously processes the entire <strong>New</strong> request queue — triage, contractor briefs, tenant replies, status updates — without any human input.</div>
+      </div>
+      <button class="ap-big-btn" id="ap-main-btn" onclick="toggleAutopilot()">
+        ▶ Start AutoPilot
+      </button>
+    </div>
+
+    <!-- New queue preview -->
+    <div class="ap-queue-preview" id="ap-queue-preview">
+      <div class="ap-queue-title">📋 Pending Queue (<span id="ap-pending-count">0</span> New requests)</div>
+      <div id="ap-pending-list">
+        <div class="empty-state">No new requests waiting.</div>
+      </div>
+    </div>
+
+    <!-- Trace -->
+    <div class="trace-card">
+      <div class="trace-card-header">
+        <span class="trace-card-title">🟢 Live Reasoning Trace</span>
+        <div class="spinner" id="trace-spinner" style="display:none;"></div>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">Real-time AI processing log</span>
+      </div>
+      <div id="trace-body">
+        <div class="trace-empty">AutoPilot trace will appear here when running...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── Page: Analytics ── -->
+  <div class="page" id="page-analytics">
+
+    <div class="stats-grid">
+      <div class="stat-card sc-red"><div class="sc-label">🔴 Emergency</div><div class="sc-value" id="an-emergency">0</div></div>
+      <div class="stat-card sc-amber"><div class="sc-label">🟠 High</div><div class="sc-value" id="an-high">0</div></div>
+      <div class="stat-card sc-blue"><div class="sc-label">🟡 Medium</div><div class="sc-value" id="an-medium">0</div></div>
+      <div class="stat-card sc-green"><div class="sc-label">🟢 Low</div><div class="sc-value" id="an-low">0</div></div>
+    </div>
+
+    <div class="two-col">
+      <div class="chart-card">
+        <div class="chart-card-header">📊 Requests by Category</div>
+        <div class="chart-body">
+          <div class="chart-wrap"><canvas id="cat-bar-chart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header">🎯 Urgency Distribution</div>
+        <div class="chart-body">
+          <div class="donut-wrap"><canvas id="urgency-donut"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-card-header">📋 Category Breakdown</div>
+      <div class="analytics-list" id="analytics-cat-list"></div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div id="toast-container"></div>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────
+  let allRequests = [];
+  let queueFilter = 'All';
+  let selectedId  = null;
+  let apRunning   = false;
+  let apStream    = null;
+  let apPollTimer = null;
+  let catBarChart = null;
+  let statusChart = null;
+  let urgencyDonut = null;
+
+  // ── Init ─────────────────────────────────────────────────────────────
+  document.addEventListener('DOMContentLoaded', () => {
+    loadAll();
+    setInterval(loadAll, 12000);
+  });
+
+  async function loadAll() {
+    await Promise.all([loadRequests(), loadAnalytics()]);
+  }
+
+  // ── Navigation ────────────────────────────────────────────────────────
+  function navigate(page, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (el) el.classList.add('active');
+    document.getElementById('topbar-title').textContent =
+      {overview:'Overview', queue:'Request Queue', autopilot:'AutoPilot Mode', analytics:'Analytics'}[page] || page;
+    if (page === 'autopilot') refreshApQueue();
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────
+  function toast(msg, type='info') {
+    const icons = {success:'✅', error:'❌', info:'ℹ️'};
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => { el.style.opacity='0'; el.style.transition='opacity 0.3s'; setTimeout(()=>el.remove(),300); }, 3200);
+  }
+
+  // ── Load Requests ─────────────────────────────────────────────────────
+  async function loadRequests() {
+    try {
+      const res = await fetch('/api/requests');
+      allRequests = await res.json();
+      renderQueue();
+      renderOverviewRecent();
+      updateNavBadges();
+    } catch(e) { console.error(e); }
+  }
+
+  function updateNavBadges() {
+    const newCount = allRequests.filter(r => r.status === 'New').length;
+    const emergencyCount = allRequests.filter(r => r.urgency === 'Emergency' && r.status !== 'Resolved').length;
+    const nb = document.getElementById('nav-new-count');
+    nb.textContent = newCount;
+    nb.style.display = newCount > 0 ? '' : 'none';
+    const eb = document.getElementById('nav-emergency-count');
+    eb.textContent = emergencyCount;
+    eb.style.display = emergencyCount > 0 ? '' : 'none';
+  }
+
+  // ── Queue Rendering ───────────────────────────────────────────────────
+  function setFilter(f, el) {
+    queueFilter = f;
+    document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    renderQueue();
+  }
+
+  function renderQueue() {
+    const filtered = queueFilter === 'All' ? allRequests : allRequests.filter(r => r.status === queueFilter);
+    const container = document.getElementById('queue-items');
+
+    if (!filtered.length) {
+      container.innerHTML = `<div class="empty-state" style="padding:40px 20px;text-align:center;color:var(--muted);font-size:13px;">No requests found.</div>`;
+      return;
+    }
+
+    const urgEmoji = {Emergency:'🔴', High:'🟠', Medium:'🟡', Low:'🟢'};
+    container.innerHTML = filtered.map(r => {
+      const scls = 'st-' + r.status.toLowerCase().replace(' ','-');
+      const sel  = r.id === selectedId ? ' selected' : '';
+      const apt  = r.apartment_ref || '';
+      const preview = (r.tenant_message||'').slice(0,65) + ((r.tenant_message||'').length>65?'…':'');
+      const ts = (r.created_at||'').slice(11,16);
+      return `<div class="qi${sel}" onclick="selectRequest(${r.id})">
+        <div class="qi-top">
+          ${apt?`<span class="qi-apt">${apt}</span>`:''}
+          <span class="qi-status ${scls}">${r.status}</span>
+          <span class="qi-urgency ur-${r.urgency}" style="margin-left:auto;">${urgEmoji[r.urgency]||''} ${r.urgency}</span>
+        </div>
+        <div class="qi-msg">${preview}</div>
+        <div class="qi-foot">
+          <span class="qi-cat">${r.category}</span>
+          <span class="qi-time">${ts}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderOverviewRecent() {
+    const top5 = allRequests.slice(0, 5);
+    const urgEmoji = {Emergency:'🔴', High:'🟠', Medium:'🟡', Low:'🟢'};
+    const container = document.getElementById('ov-recent');
+    if (!top5.length) { container.innerHTML = '<div class="empty-state">No requests yet.</div>'; return; }
+    container.innerHTML = top5.map(r => {
+      const scls = 'st-' + r.status.toLowerCase().replace(' ','-');
+      const preview = (r.tenant_message||'').slice(0,55)+'…';
+      return `<div class="qi" onclick="navigate('queue',document.querySelector('[data-page=queue]'));setTimeout(()=>selectRequest(${r.id}),50);" style="margin-bottom:7px;">
+        <div class="qi-top">
+          ${r.apartment_ref?`<span class="qi-apt">${r.apartment_ref}</span>`:''}
+          <span class="qi-status ${scls}">${r.status}</span>
+          <span style="margin-left:auto;font-size:12px;">${urgEmoji[r.urgency]||''} ${r.urgency}</span>
+        </div>
+        <div class="qi-msg">${preview}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Select + Detail ───────────────────────────────────────────────────
+  async function selectRequest(id) {
+    selectedId = id;
+    renderQueue();
+    // Switch to queue page if not there
+    if (!document.getElementById('page-queue').classList.contains('active')) {
+      navigate('queue', document.querySelector('[data-page=queue]'));
+    }
+
+    const r = allRequests.find(x => x.id === id);
+    if (!r) return;
+
+    document.getElementById('detail-empty').style.display = 'none';
+    document.getElementById('detail-body').style.display = '';
+
+    const urgIcon   = {Emergency:'🚨', High:'⚠️', Medium:'🔔', Low:'🔵'};
+    const urgUICls  = {Emergency:'ui-Emergency', High:'ui-High', Medium:'ui-Medium', Low:'ui-Low'};
+    const urgPilCls = {Emergency:'mp-urgency-Emergency', High:'mp-urgency-High', Medium:'mp-urgency-Medium', Low:'mp-urgency-Low'};
+    const scMap     = {New:'st-new','In Progress':'st-in-progress', Resolved:'st-resolved'};
+
+    const uiIcon = document.getElementById('d-urgency-icon');
+    uiIcon.textContent = urgIcon[r.urgency] || '🔧';
+    uiIcon.className = 'detail-urgency-icon ' + (urgUICls[r.urgency]||'');
+
+    document.getElementById('d-title').textContent = `${r.apartment_ref || 'Request'} — #${r.id}`;
+
+    document.getElementById('d-pills').innerHTML = [
+      `<span class="meta-pill ${urgPilCls[r.urgency]||'mp-default'}">${r.urgency}</span>`,
+      `<span class="meta-pill mp-default">${r.category}</span>`,
+      `<span class="meta-pill ${scMap[r.status]||''}">${r.status}</span>`,
+      `<span class="meta-pill mp-default">⏱ ${r.response_time}</span>`,
+      r.language_detected && r.language_detected !== 'en'
+        ? `<span class="meta-pill" style="background:rgba(79,143,255,0.12);color:var(--accent2);border:1px solid rgba(79,143,255,0.3);">🌍 ${r.language_detected.toUpperCase()}</span>`
+        : '',
+    ].join('');
+
+    document.getElementById('d-message').textContent = r.tenant_message || '';
+    document.getElementById('d-brief').textContent   = r.contractor_brief || '';
+    document.getElementById('d-advice').textContent  = '💡 ' + (r.tenant_advice || '');
+
+    const replyEl = document.getElementById('d-reply');
+    if (r.ai_reply) {
+      replyEl.textContent = r.ai_reply;
+      replyEl.style.color = 'var(--text)';
+    } else {
+      replyEl.textContent = 'Click "Generate Reply" to draft a professional response...';
+      replyEl.style.color = 'var(--muted)';
+    }
+
+    const langBadge = document.getElementById('lang-badge');
+    if (r.language_detected && r.language_detected !== 'en') {
+      langBadge.textContent = '🌍 Reply in ' + r.language_detected.toUpperCase();
+      langBadge.style.display = '';
+    } else langBadge.style.display = 'none';
+
+    const sel = document.getElementById('d-status-select');
+    sel.value = r.status;
+    sel.dataset.rid = r.id;
+  }
+
+  // ── Generate Reply ────────────────────────────────────────────────────
+  async function generateReply() {
+    if (!selectedId) { toast('Select a request first','error'); return; }
+    setAiState('busy');
+    const replyEl = document.getElementById('d-reply');
+    replyEl.textContent = '⏳ Generating reply...';
+    replyEl.style.color = 'var(--muted)';
+    try {
+      const res = await fetch(`/api/requests/${selectedId}/reply`, {method:'POST'});
+      const data = await res.json();
+      if (res.ok) {
+        replyEl.textContent = data.reply;
+        replyEl.style.color = 'var(--text)';
+        const r = allRequests.find(x => x.id === selectedId);
+        if (r) r.ai_reply = data.reply;
+        toast('Reply generated ✅','success');
+      } else { replyEl.textContent = data.error||'Error'; toast('Error: '+data.error,'error'); }
+    } catch(e) { replyEl.textContent = 'Error'; toast('Network error','error'); }
+    setAiState('ready');
+  }
+
+  // ── Update Status ─────────────────────────────────────────────────────
+  async function updateStatus() {
+    const sel = document.getElementById('d-status-select');
+    const id  = sel.dataset.rid || selectedId;
+    const status = sel.value;
+    if (!id) return;
+    try {
+      const res = await fetch(`/api/requests/${id}/status`, {
+        method:'PATCH', headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({status}),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const r = allRequests.find(x=>x.id==id);
+        if (r) r.status = status;
+        renderQueue();
+        updateNavBadges();
+        toast(`Status → ${status}`,'success');
+      } else toast(data.error||'Update failed','error');
+    } catch(e) { toast('Network error','error'); }
+  }
+
+  // ── Clipboard / Export ────────────────────────────────────────────────
+  function copyBrief() {
+    const r = allRequests.find(x=>x.id===selectedId);
+    if (!r) return;
+    navigator.clipboard.writeText(r.contractor_brief||'').then(()=>toast('Brief copied 📋','success'));
+  }
+  function copyReply() {
+    const t = document.getElementById('d-reply').textContent;
+    if (!t || t.startsWith('Click')) return;
+    navigator.clipboard.writeText(t).then(()=>toast('Reply copied 📨','success'));
+  }
+  function downloadBrief() {
+    const r = allRequests.find(x=>x.id===selectedId);
+    if (!r) return;
+    const d = new Date().toISOString().slice(0,10);
+    const txt = [
+      'PropertyOS — Contractor Brief',
+      `Date: ${d}`,
+      `Unit: ${r.apartment_ref||'Unknown'}`,
+      `Urgency: ${r.urgency}`,
+      `Category: ${r.category}`,
+      `Response Time: ${r.response_time}`,
+      '',
+      'CONTRACTOR BRIEF:',
+      r.contractor_brief||'',
+      '',
+      'TENANT ADVICE:',
+      r.tenant_advice||'',
+      '',
+      'ORIGINAL MESSAGE:',
+      r.tenant_message||'',
+    ].join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+    a.download = `brief-${(r.apartment_ref||'unit').replace(/\s/g,'')}-${d}.txt`;
+    a.click();
+    toast('Brief downloaded ⬇','success');
+  }
+
+  // ── Simulate ──────────────────────────────────────────────────────────
+  async function simulate() {
+    setAiState('busy');
+    try {
+      const res = await fetch('/api/simulate',{method:'POST'});
+      const r = await res.json();
+      if (res.ok) {
+        toast(`Simulated: ${r.apartment_ref} — ${r.urgency}`,'info');
+        await loadAll();
+      } else toast(r.error||'Failed','error');
+    } catch(e) { toast('Error:'+e.message,'error'); }
+    setAiState('ready');
+  }
+
+  // ── Analytics ─────────────────────────────────────────────────────────
+  async function loadAnalytics() {
+    try {
+      const res = await fetch('/api/analytics');
+      const d = await res.json();
+      // Overview stats
+      document.getElementById('ov-emergency').textContent   = d.active_emergency||0;
+      document.getElementById('ov-high').textContent        = d.active_high||0;
+      document.getElementById('ov-resolved').textContent    = d.resolved_today||0;
+      document.getElementById('ov-total').textContent       = d.total||0;
+      // Analytics page stats
+      document.getElementById('an-emergency').textContent   = (d.urgency_counts||{}).Emergency||0;
+      document.getElementById('an-high').textContent        = (d.urgency_counts||{}).High||0;
+      document.getElementById('an-medium').textContent      = (d.urgency_counts||{}).Medium||0;
+      document.getElementById('an-low').textContent         = (d.urgency_counts||{}).Low||0;
+      renderCategoryList(d.category_counts||[], 'cat-list');
+      renderCategoryList(d.category_counts||[], 'analytics-cat-list');
+      renderStatusChart(d.status_counts||{});
+      renderCatBarChart(d.category_counts||[]);
+      renderUrgencyDonut(d.urgency_counts||{});
+    } catch(e) { console.error(e); }
+  }
+
+  function renderCategoryList(cats, elId) {
+    const el = document.getElementById(elId);
+    if (!cats.length) { el.innerHTML='<div class="empty-state">No data.</div>'; return; }
+    const max = Math.max(...cats.map(c=>c.count));
+    el.innerHTML = cats.map(c => `
+      <div class="al-row">
+        <span class="al-label">${c.category}</span>
+        <div class="al-bar"><div class="al-fill" style="width:${(c.count/max*100).toFixed(1)}%"></div></div>
+        <span class="al-count">${c.count}</span>
+      </div>`).join('');
+  }
+
+  function renderStatusChart(counts) {
+    const ctx = document.getElementById('status-chart').getContext('2d');
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['New','In Progress','Resolved'],
+        datasets:[{
+          data: [counts.New||0, counts['In Progress']||0, counts.Resolved||0],
+          backgroundColor:['rgba(79,143,255,0.7)','rgba(245,158,11,0.7)','rgba(16,185,129,0.7)'],
+          borderWidth:0,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'#6B7280',font:{family:'DM Mono',size:11}},position:'right'}},
+        cutout:'65%',
+      }
+    });
+  }
+
+  function renderCatBarChart(cats) {
+    const ctx = document.getElementById('cat-bar-chart').getContext('2d');
+    if (catBarChart) catBarChart.destroy();
+    catBarChart = new Chart(ctx, {
+      type:'bar',
+      data:{
+        labels: cats.map(c=>c.category),
+        datasets:[{
+          data: cats.map(c=>c.count),
+          backgroundColor:'rgba(0,217,163,0.6)',
+          borderColor:'rgba(0,217,163,1)',
+          borderWidth:1,
+          borderRadius:4,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{display:false}},
+        scales:{
+          x:{ticks:{color:'#6B7280',font:{family:'DM Mono',size:10}},grid:{color:'#2A2A3D'}},
+          y:{ticks:{color:'#6B7280',font:{family:'DM Mono',size:10},stepSize:1},grid:{color:'#2A2A3D'},beginAtZero:true},
+        }
+      }
+    });
+  }
+
+  function renderUrgencyDonut(counts) {
+    const ctx = document.getElementById('urgency-donut').getContext('2d');
+    if (urgencyDonut) urgencyDonut.destroy();
+    urgencyDonut = new Chart(ctx, {
+      type:'doughnut',
+      data:{
+        labels:['Emergency','High','Medium','Low'],
+        datasets:[{
+          data:[counts.Emergency||0,counts.High||0,counts.Medium||0,counts.Low||0],
+          backgroundColor:['rgba(239,68,68,0.8)','rgba(245,158,11,0.8)','rgba(79,143,255,0.8)','rgba(16,185,129,0.8)'],
+          borderWidth:0,
+        }]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:'#6B7280',font:{family:'DM Mono',size:11}},position:'right'}},
+        cutout:'55%',
+      }
+    });
+  }
+
+  // ── AutoPilot ─────────────────────────────────────────────────────────
+  async function toggleAutopilot() {
+    apRunning ? await stopAutopilot() : await startAutopilot();
+  }
+
+  async function startAutopilot() {
+    apRunning = true;
+    document.getElementById('ap-toggle').classList.add('active');
+    const btn = document.getElementById('ap-main-btn');
+    btn.className = 'ap-big-btn running';
+    btn.textContent = '■ Stop AutoPilot';
+    document.getElementById('trace-spinner').style.display = '';
+    document.getElementById('trace-body').innerHTML = '';
+    setAiState('busy', 'AutoPilot Running...');
+
+    // Switch to autopilot page for the wow effect
+    navigate('autopilot', document.querySelector('[data-page=autopilot]'));
+
+    await fetch('/api/autopilot/start', {method:'POST'});
+
+    if (apStream) apStream.close();
+    apStream = new EventSource('/api/autopilot/trace-stream');
+    apStream.onmessage = (evt) => {
+      const entry = JSON.parse(evt.data);
+      appendTraceLine(entry);
+      if (entry.message && entry.message.includes('Queue clear')) {
+        document.getElementById('trace-spinner').style.display = 'none';
+        apRunning = false;
+        document.getElementById('ap-toggle').classList.remove('active');
+        document.getElementById('ap-main-btn').className = 'ap-big-btn';
+        document.getElementById('ap-main-btn').textContent = '▶ Start AutoPilot';
+        setAiState('ready');
+        toast('AutoPilot complete — queue processed ✅','success');
+        loadAll();
+      }
+    };
+    apStream.onerror = () => {
+      apStream.close();
+      document.getElementById('trace-spinner').style.display = 'none';
+      setAiState('ready');
+      loadAll();
+    };
+
+    // Poll while running
+    apPollTimer = setInterval(async () => {
+      if (!apRunning) { clearInterval(apPollTimer); return; }
+      await loadAll();
+    }, 2500);
+  }
+
+  async function stopAutopilot() {
+    apRunning = false;
+    clearInterval(apPollTimer);
+    document.getElementById('ap-toggle').classList.remove('active');
+    document.getElementById('trace-spinner').style.display = 'none';
+    const btn = document.getElementById('ap-main-btn');
+    btn.className = 'ap-big-btn';
+    btn.textContent = '▶ Start AutoPilot';
+    if (apStream) { apStream.close(); apStream = null; }
+    await fetch('/api/autopilot/stop', {method:'POST'});
+    setAiState('ready');
+    toast('AutoPilot stopped','info');
+    await loadAll();
+  }
+
+  function appendTraceLine(entry) {
+    const body = document.getElementById('trace-body');
+    // Remove empty placeholder
+    const empty = body.querySelector('.trace-empty');
+    if (empty) empty.remove();
+
+    const sep = entry.message && entry.message.startsWith('─');
+    const line = document.createElement('div');
+    line.className = 'trace-line' + (sep?' sep':'');
+    line.innerHTML = `<span class="trace-ts">${entry.ts}</span><span class="trace-msg">${entry.icon?entry.icon+' ':''}${entry.message}</span>`;
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function refreshApQueue() {
+    const newReqs = allRequests.filter(r => r.status === 'New');
+    document.getElementById('ap-pending-count').textContent = newReqs.length;
+    const list = document.getElementById('ap-pending-list');
+    const urgEmoji = {Emergency:'🔴',High:'🟠',Medium:'🟡',Low:'🟢'};
+    if (!newReqs.length) {
+      list.innerHTML = '<div class="empty-state" style="padding:20px;text-align:center;color:var(--muted);font-size:13px;">No new requests waiting.</div>';
+      return;
+    }
+    list.innerHTML = newReqs.map(r => `
+      <div class="ap-qi">
+        <span style="font-size:16px;">${urgEmoji[r.urgency]||'⚪'}</span>
+        <span style="font-family:var(--mono);font-size:11px;color:var(--accent);">${r.apartment_ref||'Unknown'}</span>
+        <span style="font-size:13px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(r.tenant_message||'').slice(0,60)}…</span>
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);">${r.urgency}</span>
+      </div>`).join('');
+  }
+
+  // ── AI State Indicator ────────────────────────────────────────────────
+  function setAiState(state, label) {
+    const dot = document.getElementById('ai-dot');
+    const lbl = document.getElementById('ai-status-label');
+    if (state === 'busy') {
+      dot.className = 'ai-dot busy';
+      lbl.textContent = label || 'Processing...';
+    } else {
+      dot.className = 'ai-dot';
+      lbl.textContent = 'AI Ready';
+    }
+  }
+</script>
+</body>
+</html>
