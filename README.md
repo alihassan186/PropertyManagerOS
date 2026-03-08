@@ -19,6 +19,7 @@ cd propertyos
 python -m venv venv
 source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 ### 3. Add API Key
@@ -38,6 +39,40 @@ python seed_data.py
 python app.py
 ```
 Open **http://localhost:5000** in Chrome.
+
+---
+
+## Development Workflow
+
+### Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Available runtime variables:
+- `GROQ_API_KEY`
+- `FLASK_DEBUG` (`true` / `false`)
+- `FLASK_HOST` (default `127.0.0.1`)
+- `PORT` (default `5000`)
+
+### Quality Checks (Run before pushing)
+
+```bash
+ruff check .
+black --check .
+python -m compileall .
+```
+
+If formatting fails:
+
+```bash
+black .
+```
+
+### CI
+
+GitHub Actions runs lint + formatting + compile checks on every push and pull request.
 
 ---
 

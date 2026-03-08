@@ -5,6 +5,7 @@ Run: python app.py  →  http://localhost:5000
 """
 
 import json
+import os
 import queue
 import random
 import time
@@ -490,4 +491,7 @@ def api_get_thread_emails(thread_id):
 # ─── Entry point ────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5000, threaded=True)
+    debug_mode = os.getenv("FLASK_DEBUG", "false").strip().lower() in {"1", "true", "yes", "on"}
+    host = os.getenv("FLASK_HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "5000"))
+    app.run(debug=debug_mode, host=host, port=port, threaded=True)

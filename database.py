@@ -385,7 +385,6 @@ def save_communication(email_data: dict) -> dict:
         1 if email_data.get("read") else 0,
     ))
     conn.commit()
-    row_id = cursor.lastrowid
     conn.close()
     return get_communication_by_email_id(email_data.get("id"))
 
